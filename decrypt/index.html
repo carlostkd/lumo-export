@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lumo Chat Decryptor</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>
+ Lumo Decryptor</h1>
+            <p class="subtitle">Unlock your encrypted chat archives securely.</p>
+        </div>
+        <div class="upload-zone" id="dropZone">
+            <input type="file" id="fileInput" accept=".json.enc" hidden>
+            <div class="upload-content">
+                <div class="icon">
+</div>
+                <p>Drag & Drop your <code>.json.enc</code> file here</p>
+                <p class="small">or <span class="browse-link">browse files</span></p>
+            </div>
+        </div>
+        <div class="password-section hidden" id="passwordSection">
+            <div class="form-group">
+                <label for="decryptPassword">Enter Decryption Password</label>
+                <input type="password" id="decryptPassword" placeholder="The password you used to encrypt">
+                <div id="passwordHint" class="hint hidden">Incorrect password or corrupted file.</div>
+            </div>
+            <button id="decryptBtn" class="btn">Unlock Chat</button>
+        </div>
+        <div class="result-section hidden" id="resultSection">
+            <div class="result-header">
+                <h2>Chat Decrypted Successfully!</h2>
+                <div class="actions">
+                    <button id="viewBtn" class="btn btn-secondary">View in Browser</button>
+                    <button id="downloadJsonBtn" class="btn btn-outline">Download JSON</button>
+                    <button id="downloadTxtBtn" class="btn btn-outline">Download TXT</button>
+                </div>
+            </div>
+            <div class="preview-box" id="previewBox">
+                <!-- Decrypted content will appear here -->
+            </div>
+        </div>
+    </div>
+    <script src="decrypt.js"></script>
+</body>
+</html>
