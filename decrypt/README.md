@@ -28,7 +28,7 @@ This tool reverses that process entirely in your browser. No data is ever sent t
 You can use the hosted version directly in your browser without installation.
 
 Link: https://carlostkd.ch/lumo/export/decrypt
-(Replace with your actual hosted URL)
+
 
 ## 🏠 Self-Host
 
