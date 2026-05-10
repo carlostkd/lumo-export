@@ -1,4 +1,4 @@
-# 🚀 Lumo Chat Export
+#  Lumo Chat Export
 
 <div align="center">
 
