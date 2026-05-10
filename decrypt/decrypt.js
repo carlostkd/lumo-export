@@ -10,41 +10,53 @@ document.addEventListener('DOMContentLoaded', () => {
     const viewBtn = document.getElementById('viewBtn');
     const downloadJsonBtn = document.getElementById('downloadJsonBtn');
     const downloadTxtBtn = document.getElementById('downloadTxtBtn');
-
     let encryptedData = null;
     let decryptedData = null;
-
     dropZone.addEventListener('click', () => fileInput.click());
     
     dropZone.addEventListener('dragover', (e) => {
         e.preventDefault();
         dropZone.classList.add('dragover');
     });
-
     dropZone.addEventListener('dragleave', () => {
         dropZone.classList.remove('dragover');
     });
-
     dropZone.addEventListener('drop', (e) => {
         e.preventDefault();
         dropZone.classList.remove('dragover');
         const files = e.dataTransfer.files;
         if (files.length) handleFile(files[0]);
     });
-
     fileInput.addEventListener('change', (e) => {
         if (e.target.files.length) handleFile(e.target.files[0]);
     });
-
+     
     function handleFile(file) {
         const existingError = document.querySelector('.file-error');
         if (existingError) existingError.remove();
-
-        if (!file.name.endsWith('.json.enc')) {
+        const validExtensions = ['.json.enc'];
+        const fileName = file.name.toLowerCase();
+        let isValid = false;
+        for (const ext of validExtensions) {
+            if (fileName.endsWith(ext)) {
+                isValid = true;
+                break;
+            }
+        }
+      
+        
+        if (!isValid) {
+        
+             if (fileName.endsWith('.enc') && fileName.includes('.json')) {
+                 isValid = true;
+             }
+        }
+        if (!isValid) {
             const errorMsg = document.createElement('div');
             errorMsg.className = 'file-error';
             errorMsg.style.cssText = 'color: #ff4444; font-size: 0.9rem; margin-top: 1rem; font-weight: 600; text-align: center; animation: shake 0.5s;';
-            errorMsg.textContent = `❌ Invalid file: "${file.name}". Please upload a .json.enc file.`;
+            errorMsg.textContent = `
+ Invalid file: "${file.name}". Please upload a .json.enc file.`;
             
             if (!document.getElementById('shake-style')) {
                 const style = document.createElement('style');
@@ -52,11 +64,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 style.textContent = '@keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }';
                 document.head.appendChild(style);
             }
-
             dropZone.appendChild(errorMsg);
             return;
         }
-
         const reader = new FileReader();
         reader.onload = (e) => {
             encryptedData = new Uint8Array(e.target.result);
@@ -68,7 +78,6 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         reader.readAsArrayBuffer(file);
     }
-
     const deriveKey = async (password, salt) => {
         const enc = new TextEncoder();
         const keyMaterial = await window.crypto.subtle.importKey(
@@ -91,12 +100,10 @@ document.addEventListener('DOMContentLoaded', () => {
             ["decrypt"]
         );
     };
-
     const decryptData = async (buffer, password) => {
         const salt = buffer.slice(0, 16);
         const iv = buffer.slice(16, 28);
         const data = buffer.slice(28);
-
         try {
             const key = await deriveKey(password, salt);
             const decryptedContent = await window.crypto.subtle.decrypt(
@@ -110,7 +117,6 @@ document.addEventListener('DOMContentLoaded', () => {
             throw new Error('Invalid password or corrupted file.');
         }
     };
-
     decryptBtn.addEventListener('click', async () => {
         const password = decryptPassword.value.trim();
         if (!password) {
@@ -118,10 +124,8 @@ document.addEventListener('DOMContentLoaded', () => {
             passwordHint.classList.remove('hidden');
             return;
         }
-
         decryptBtn.disabled = true;
         passwordHint.classList.add('hidden');
-
         try {
             const jsonStr = await decryptData(encryptedData, password);
             decryptedData = JSON.parse(jsonStr);
@@ -136,14 +140,12 @@ document.addEventListener('DOMContentLoaded', () => {
             previewBox.textContent = preview + (decryptedData.messages.length > 5 ? '\n\n... (truncated)' : '');
             
             setupDownloads();
-
         } catch (err) {
             passwordHint.textContent = err.message;
             passwordHint.classList.remove('hidden');
             decryptBtn.disabled = false;
         }
     });
-
     function setupDownloads() {
         const fullJson = JSON.stringify(decryptedData, null, 2);
         
@@ -152,7 +154,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const url = URL.createObjectURL(blob);
             window.open(url, '_blank');
         };
-
         downloadJsonBtn.onclick = () => {
             const blob = new Blob([fullJson], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
@@ -161,7 +162,6 @@ document.addEventListener('DOMContentLoaded', () => {
             a.download = `lumo-chat-decrypted-${Date.now()}.json`;
             a.click();
         };
-
         downloadTxtBtn.onclick = () => {
             const txt = decryptedData.messages.map(m => 
                 `[${m.role.toUpperCase()}]:\n${m.content}\n`
@@ -174,4 +174,3 @@ document.addEventListener('DOMContentLoaded', () => {
             a.click();
         };
     }
-});
