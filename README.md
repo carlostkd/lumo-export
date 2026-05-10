@@ -30,12 +30,15 @@ All processing happens **locally in your browser**. Your data never leaves your 
 
 | Feature | Description |
 |---------|-------------|
-| ⚡ One-Click Export | No complex setups. Click, choose format, download. |
-| 🔒 100% Private | All processing happens locally. Zero data collection. |
-| 📄 Multiple Formats | JSON, Plain Text, or HTML — pick what fits your needs. |
-| 🧹 Clean Output | Automatically strips UI elements, thinking paths, and buttons. |
-| 🎨 Modern Design | Sleek dark-mode interface matching the Proton ecosystem. |
-| 🛠️ Developer Friendly | Structured JSON ready for imports, databases, or analysis. |
+| ⚡ **One-Click Export** | Instantly save your chat history with a single click. No complex setups. |
+| 🔍 **Selective Export** | Choose exactly what to export: **All**, **Only You**, **Only Lumo**, or **Manual Selection**. |
+| 🔒 **AES-256 Encryption** | Protect your archives with password-based encryption (PBKDF2 + AES-GCM). |
+| 📄 **Multiple Formats** | Export as **JSON** (structured), **Plain Text** (readable), or **HTML** (visual). |
+| 🧹 **Clean Output** | Automatically strips UI elements, thinking paths, buttons, and metadata. |
+| 🎨 **Modern Design** | Sleek dark-mode interface matching the Proton/Lumo ecosystem aesthetic. |
+| 🛠️ **Developer Friendly** | Structured JSON output ready for imports, databases, or custom analysis. |
+| 🔐 **Zero Data Collection** | All processing happens locally in your browser. No data is sent to any server. |
+
 
 ---
 
