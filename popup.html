@@ -25,6 +25,20 @@
             </div>
         </div>
 
+        <div class="form-group checkbox-group">
+            <label class="checkbox-label">
+                <input type="checkbox" id="encryptCheck">
+                <span class="checkmark"></span>
+                Encrypt with Password
+            </label>
+            <div class="password-input-wrapper hidden" id="passwordWrapper">
+                <input type="password" id="passwordInput" placeholder="Enter strong password">
+                <input type="password" id="confirmPasswordInput" placeholder="Confirm password">
+                <div class="password-hint">Passwords must match. Min 8 chars.</div>
+                <div id="matchStatus" class="match-status hidden">Passwords do not match</div>
+            </div>
+        </div>
+
         <button id="exportBtn" class="btn">
             <span class="btn-text">Export Chat</span>
             <div class="loader"></div>

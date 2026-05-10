@@ -8,7 +8,7 @@ body {
     font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
     background: #1a1a2e;
     color: #e0e0e0;
-    min-width: 300px;
+    min-width: 320px;
     padding: 0;
 }
 
@@ -88,6 +88,104 @@ select:focus {
     pointer-events: none;
 }
 
+.checkbox-group {
+    margin-top: 10px;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    color: #e0e0e0;
+    text-transform: none;
+    letter-spacing: normal;
+}
+
+.checkbox-label input[type="checkbox"] {
+    display: none;
+}
+
+.checkmark {
+    width: 18px;
+    height: 18px;
+    border: 2px solid #2a2a4a;
+    border-radius: 4px;
+    margin-right: 10px;
+    background: #16213e;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.checkbox-label input:checked + .checkmark {
+    background: #6c63ff;
+    border-color: #6c63ff;
+}
+
+.checkbox-label input:checked + .checkmark::after {
+    content: '';
+    position: absolute;
+    left: 5px;
+    top: 1px;
+    width: 4px;
+    height: 8px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.password-input-wrapper {
+    margin-top: 12px;
+    transition: all 0.3s ease;
+}
+
+.password-input-wrapper.hidden {
+    display: none;
+    opacity: 0;
+    transform: translateY(-5px);
+}
+
+.password-input-wrapper:not(.hidden) {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+#passwordInput, #confirmPasswordInput {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #2a2a4a;
+    border-radius: 8px;
+    background: #16213e;
+    color: #e0e0e0;
+    font-size: 13px;
+    outline: none;
+    margin-bottom: 8px;
+}
+
+#passwordInput:focus, #confirmPasswordInput:focus {
+    border-color: #6c63ff;
+}
+
+.password-hint {
+    font-size: 11px;
+    color: #6c63ff;
+    margin-top: 4px;
+    margin-bottom: 4px;
+}
+
+.match-status {
+    font-size: 11px;
+    color: #ff6b6b;
+    font-weight: 600;
+    margin-top: 4px;
+}
+
+.match-status.hidden {
+    display: none;
+}
+
 .btn {
     width: 100%;
     padding: 14px;
@@ -165,16 +263,4 @@ select:focus {
 
 .status.success {
     color: #51cf66;
-}
-
-.counter {
-    margin-top: 12px;
-    font-size: 12px;
-    text-align: center;
-    color: #a0a0b0;
-    font-style: italic;
-}
-
-.hidden {
-    display: none;
 }
