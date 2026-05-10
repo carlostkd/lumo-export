@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const matchStatus = document.getElementById('matchStatus');
     const messageListEl = document.getElementById('messageList');
     const selectedCountEl = document.getElementById('selectedCount');
+    const searchInput = document.getElementById('searchInput');
     const selectAllBtn = document.getElementById('selectAllBtn');
     const selectUserBtn = document.getElementById('selectUserBtn');
     const selectLumoBtn = document.getElementById('selectLumoBtn');
@@ -18,6 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let allMessages = [];
     let selectedIndices = new Set();
+    let currentFilter = '';
 
     const setStatus = (message, type = '') => {
         statusDiv.textContent = message;
@@ -163,9 +165,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    const renderList = () => {
+
+            const renderList = () => {
         messageListEl.innerHTML = '';
-        selectedIndices.clear();
         
         if (allMessages.length === 0) {
             messageListEl.innerHTML = '<div class="loading-list">No messages found.</div>';
@@ -173,15 +175,29 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        const filterLower = currentFilter.toLowerCase();
+        const tooltip = document.getElementById('floatingTooltip');
+
         allMessages.forEach((msg, index) => {
-            selectedIndices.add(index); // Default: Select All
+            const matchesFilter = filterLower === '' || 
+                                  msg.content.toLowerCase().includes(filterLower) ||
+                                  msg.role.toLowerCase().includes(filterLower);
+
             const item = document.createElement('div');
             item.className = 'list-item';
             
+            if (!matchesFilter) {
+                item.classList.add('hidden');
+            }
+            
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
-            checkbox.checked = true;
+            checkbox.checked = selectedIndices.has(index);
             checkbox.dataset.index = index;
+            
+            if (!matchesFilter) {
+                checkbox.disabled = true;
+            }
             
             const contentDiv = document.createElement('div');
             contentDiv.className = 'list-item-content';
@@ -199,22 +215,83 @@ document.addEventListener('DOMContentLoaded', () => {
             item.appendChild(checkbox);
             item.appendChild(contentDiv);
             
+                        item.addEventListener('mouseenter', (e) => {
+                if (!matchesFilter) return;
+                
+                let displayContent = msg.content
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;');
+                
+                if (filterLower) {
+                    const regex = new RegExp('(' + filterLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+                    displayContent = displayContent.replace(regex, '<span class="highlight-match">$1</span>');
+                }
+                
+                tooltip.innerHTML = `<div class="tooltip-role ${msg.role}">${msg.role === 'user' ? 'You' : 'Lumo'}</div><div class="tooltip-text">${displayContent}</div>`;
+                tooltip.classList.add('visible');
+                
+                const rect = item.getBoundingClientRect();
+                const tooltipRect = tooltip.getBoundingClientRect();
+                
+                let top = rect.top - 10;
+                let left = rect.right + 10;
+                
+                if (left + 340 > window.innerWidth) {
+                    left = rect.left - 350;
+                }
+                
+                if (left < 0) {
+                    left = rect.left;
+                    top = rect.bottom + 5;
+                }
+                
+                if (top + 400 > window.innerHeight) {
+                    top = window.innerHeight - 420;
+                }
+                
+                if (top < 0) {
+                    top = 5;
+                }
+                
+                tooltip.style.top = top + 'px';
+                tooltip.style.left = left + 'px';
+            });            
+          
+
+
+
+
+
+            item.addEventListener('mouseleave', () => {
+                tooltip.classList.remove('visible');
+            });
+            
             item.addEventListener('click', (e) => {
-                if (e.target !== checkbox) {
+                if (e.target !== checkbox && matchesFilter) {
                     checkbox.checked = !checkbox.checked;
                 }
-                toggleSelection(index, checkbox.checked);
+                if (matchesFilter) {
+                    toggleSelection(index, checkbox.checked);
+                }
             });
             
             checkbox.addEventListener('change', () => {
-                toggleSelection(index, checkbox.checked);
+                if (matchesFilter) {
+                    toggleSelection(index, checkbox.checked);
+                }
             });
             
             messageListEl.appendChild(item);
         });
         
         updateCount();
-    };
+    };    
+
+
+
+
+
 
     const toggleSelection = (index, isSelected) => {
         if (isSelected) {
@@ -235,57 +312,78 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    const selectAll = () => {
-        allMessages.forEach((_, idx) => {
-            selectedIndices.add(idx);
-            const checkbox = messageListEl.children[idx]?.querySelector('input');
-            if (checkbox) checkbox.checked = true;
-        });
+    const selectAllVisible = () => {
+        const items = messageListEl.children;
+        for (let i = 0; i < items.length; i++) {
+            const item = items[i];
+            if (!item.classList.contains('hidden')) {
+                const index = parseInt(item.querySelector('input').dataset.index);
+                selectedIndices.add(index);
+                item.querySelector('input').checked = true;
+            }
+        }
         updateCount();
     };
 
-    const selectUser = () => {
+    const selectUserVisible = () => {
         selectedIndices.clear();
-        allMessages.forEach((msg, idx) => {
-            if (msg.role === 'user') {
-                selectedIndices.add(idx);
-                const checkbox = messageListEl.children[idx]?.querySelector('input');
-                if (checkbox) checkbox.checked = true;
-            } else {
-                const checkbox = messageListEl.children[idx]?.querySelector('input');
-                if (checkbox) checkbox.checked = false;
+        const items = messageListEl.children;
+        for (let i = 0; i < items.length; i++) {
+            const item = items[i];
+            if (!item.classList.contains('hidden')) {
+                const index = parseInt(item.querySelector('input').dataset.index);
+                const msg = allMessages[index];
+                if (msg.role === 'user') {
+                    selectedIndices.add(index);
+                    item.querySelector('input').checked = true;
+                } else {
+                    item.querySelector('input').checked = false;
+                }
             }
-        });
+        }
         updateCount();
     };
 
-    const selectLumo = () => {
+    const selectLumoVisible = () => {
         selectedIndices.clear();
-        allMessages.forEach((msg, idx) => {
-            if (msg.role === 'assistant') {
-                selectedIndices.add(idx);
-                const checkbox = messageListEl.children[idx]?.querySelector('input');
-                if (checkbox) checkbox.checked = true;
-            } else {
-                const checkbox = messageListEl.children[idx]?.querySelector('input');
-                if (checkbox) checkbox.checked = false;
+        const items = messageListEl.children;
+        for (let i = 0; i < items.length; i++) {
+            const item = items[i];
+            if (!item.classList.contains('hidden')) {
+                const index = parseInt(item.querySelector('input').dataset.index);
+                const msg = allMessages[index];
+                if (msg.role === 'assistant') {
+                    selectedIndices.add(index);
+                    item.querySelector('input').checked = true;
+                } else {
+                    item.querySelector('input').checked = false;
+                }
             }
-        });
+        }
         updateCount();
     };
 
     const deselectAll = () => {
         selectedIndices.clear();
-        Array.from(messageListEl.children).forEach(child => {
-            const checkbox = child.querySelector('input');
-            if (checkbox) checkbox.checked = false;
-        });
+        const items = messageListEl.children;
+        for (let i = 0; i < items.length; i++) {
+            const item = items[i];
+            const checkbox = item.querySelector('input');
+            if (!item.classList.contains('hidden')) {
+                checkbox.checked = false;
+            }
+        }
         updateCount();
     };
 
-    selectAllBtn.addEventListener('click', selectAll);
-    selectUserBtn.addEventListener('click', selectUser);
-    selectLumoBtn.addEventListener('click', selectLumo);
+    searchInput.addEventListener('input', (e) => {
+        currentFilter = e.target.value;
+        renderList(); 
+    });
+
+    selectAllBtn.addEventListener('click', selectAllVisible);
+    selectUserBtn.addEventListener('click', selectUserVisible);
+    selectLumoBtn.addEventListener('click', selectLumoVisible);
     deselectAllBtn.addEventListener('click', deselectAll);
 
     exportBtn.addEventListener('click', async () => {
