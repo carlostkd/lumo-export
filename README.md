@@ -47,7 +47,7 @@ All processing happens **locally in your browser**. Your data never leaves your 
 ### Option 1 — From AMO (Recommended)
 
 1. Open Firefox 140 or later
-2. Visit the [AMO Store Page](https://addons.mozilla.org/en-US/firefox/addon/lumo-chat-export//)
+2. Visit the [AMO Store Page](https://addons.mozilla.org/en-US/firefox/addon/lumo-chat-export//) (still waiting for validation)
 3. Click **Add to Firefox**
 4. Confirm the installation
 
