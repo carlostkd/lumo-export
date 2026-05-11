@@ -464,3 +464,11 @@ select:focus {
 .status.success {
     color: #51cf66;
 }
+
+.export-stats {
+    margin-top: 8px;
+    font-size: 11px;
+    color: #8888aa;
+    text-align: center;
+    min-height: 16px;
+}

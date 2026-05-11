@@ -311,7 +311,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateCount();
     };
 
-    const updateCount = () => {
+        const updateCount = () => {
         selectedCountEl.textContent = `${selectedIndices.size} message${selectedIndices.size !== 1 ? 's' : ''} selected`;
         exportBtn.disabled = selectedIndices.size === 0;
         if (selectedIndices.size === 0) {
@@ -319,7 +319,22 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             exportBtn.querySelector('.btn-text').textContent = 'Export Selected';
         }
+
+        const statsEl = document.getElementById('exportStats');
+        if (selectedIndices.size === 0) {
+            statsEl.textContent = '';
+            return;
+        }
+
+        const selectedMsgs = Array.from(selectedIndices).map(i => allMessages[i]);
+        const totalWords = selectedMsgs.reduce((sum, m) => sum + m.content.split(/\s+/).filter(w => w).length, 0);
+        const jsonSize = new Blob([JSON.stringify(selectedMsgs)]).size;
+        const sizeKB = (jsonSize / 1024).toFixed(1);
+
+        statsEl.textContent = `${totalWords.toLocaleString()} words · ${sizeKB} KB`;
     };
+
+
 
     const selectAllVisible = () => {
         const items = messageListEl.children;
