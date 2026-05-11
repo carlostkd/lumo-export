@@ -25,25 +25,30 @@
             </div>
         </div>
 
-        <div class="form-group checkbox-group">
+                 <div class="form-group checkbox-group" style="display: flex; justify-content: space-between; align-items: center;">
             <label class="checkbox-label">
                 <input type="checkbox" id="encryptCheck">
                 <span class="checkmark"></span>
                 Encrypt with Password
             </label>
-            <div class="password-input-wrapper hidden" id="passwordWrapper">
-                <input type="password" id="passwordInput" placeholder="Enter strong password">
-                <input type="password" id="confirmPasswordInput" placeholder="Confirm password">
-                <div class="password-hint">Passwords must match. Min 8 chars.</div>
-                <div id="matchStatus" class="match-status hidden">Passwords do not match</div>
-            </div>
+            <label class="checkbox-label" style="margin-left: 15px;">
+                <input type="checkbox" id="tooltipCheck" checked>
+                <span class="checkmark"></span>
+                Enable Tooltips
+            </label>
+        </div>
+        <div class="password-input-wrapper hidden" id="passwordWrapper">
+            <input type="password" id="passwordInput" placeholder="Enter strong password">
+            <input type="password" id="confirmPasswordInput" placeholder="Confirm password">
+            <div class="password-hint">Passwords must match. Min 8 chars.</div>
+            <div id="matchStatus" class="match-status hidden">Passwords do not match</div>
         </div>
 
-                
-                 
+
         <div class="form-group">
             <div class="list-header">
                 <div class="search-wrapper">
+                    <!-- Fixed Search Input -->
                     <input type="text" id="searchInput" class="search-input" placeholder="🔍 Search messages...">
                 </div>
                 <div class="list-actions">
@@ -54,22 +59,16 @@
                 </div>
             </div>
             
-           
             <div id="messageList" class="message-list">
                 <div class="loading-list">Scanning chat...</div>
             </div>
             
-          
             <div id="floatingTooltip" class="floating-tooltip"></div>
             
             <div class="list-footer">
                 <span id="selectedCount">0 messages selected</span>
             </div>
         </div>
-
-
-
-
 
         <button id="exportBtn" class="btn">
             <span class="btn-text">Export Selected</span>

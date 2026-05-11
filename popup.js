@@ -14,12 +14,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const selectUserBtn = document.getElementById('selectUserBtn');
     const selectLumoBtn = document.getElementById('selectLumoBtn');
     const deselectAllBtn = document.getElementById('deselectAllBtn');
+    const tooltipCheck = document.getElementById('tooltipCheck');
     const btnText = exportBtn.querySelector('.btn-text');
     const loader = exportBtn.querySelector('.loader');
+    const floatingTooltip = document.getElementById('floatingTooltip');
 
     let allMessages = [];
     let selectedIndices = new Set();
     let currentFilter = '';
+    let tooltipTimeout = 0;
+    let isMouseOverTooltip = false;
 
     const setStatus = (message, type = '') => {
         statusDiv.textContent = message;
@@ -165,8 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-
-            const renderList = () => {
+    const renderList = () => {
         messageListEl.innerHTML = '';
         
         if (allMessages.length === 0) {
@@ -176,7 +179,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const filterLower = currentFilter.toLowerCase();
-        const tooltip = document.getElementById('floatingTooltip');
+        const tooltipsEnabled = tooltipCheck.checked;
 
         allMessages.forEach((msg, index) => {
             const matchesFilter = filterLower === '' || 
@@ -185,6 +188,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const item = document.createElement('div');
             item.className = 'list-item';
+            item.dataset.index = index;
             
             if (!matchesFilter) {
                 item.classList.add('hidden');
@@ -215,63 +219,49 @@ document.addEventListener('DOMContentLoaded', () => {
             item.appendChild(checkbox);
             item.appendChild(contentDiv);
             
-                        item.addEventListener('mouseenter', (e) => {
-                if (!matchesFilter) return;
+            if (tooltipsEnabled) {
+                item.addEventListener('mouseenter', () => {
+                    if (!matchesFilter) return;
+                    clearTimeout(tooltipTimeout);
+                    
+                    let displayContent = msg.content
+                        .replace(/&/g, '&amp;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;');
+                    
+                    if (filterLower) {
+                        const regex = new RegExp('(' + filterLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+                        displayContent = displayContent.replace(regex, '<span class="highlight-match">$1</span>');
+                    }
+                    
+                    floatingTooltip.innerHTML = `<div class="tooltip-role ${msg.role}">${msg.role === 'user' ? 'You' : 'Lumo'}</div><div class="tooltip-text">${displayContent}</div>`;
+                    floatingTooltip.classList.add('visible');
+                    
+                    const rect = item.getBoundingClientRect();
+                    let top = rect.top - 10;
+                    let left = rect.right + 10;
+                    
+                    if (left + 340 > window.innerWidth) left = rect.left - 350;
+                    if (left < 0) { left = rect.left; top = rect.bottom + 5; }
+                    if (top + 400 > window.innerHeight) top = window.innerHeight - 420;
+                    if (top < 0) top = 5;
+                    
+                    floatingTooltip.style.top = top + 'px';
+                    floatingTooltip.style.left = left + 'px';
+                });
                 
-                let displayContent = msg.content
-                    .replace(/&/g, '&amp;')
-                    .replace(/</g, '&lt;')
-                    .replace(/>/g, '&gt;');
-                
-                if (filterLower) {
-                    const regex = new RegExp('(' + filterLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
-                    displayContent = displayContent.replace(regex, '<span class="highlight-match">$1</span>');
-                }
-                
-                tooltip.innerHTML = `<div class="tooltip-role ${msg.role}">${msg.role === 'user' ? 'You' : 'Lumo'}</div><div class="tooltip-text">${displayContent}</div>`;
-                tooltip.classList.add('visible');
-                
-                const rect = item.getBoundingClientRect();
-                const tooltipRect = tooltip.getBoundingClientRect();
-                
-                let top = rect.top - 10;
-                let left = rect.right + 10;
-                
-                if (left + 340 > window.innerWidth) {
-                    left = rect.left - 350;
-                }
-                
-                if (left < 0) {
-                    left = rect.left;
-                    top = rect.bottom + 5;
-                }
-                
-                if (top + 400 > window.innerHeight) {
-                    top = window.innerHeight - 420;
-                }
-                
-                if (top < 0) {
-                    top = 5;
-                }
-                
-                tooltip.style.top = top + 'px';
-                tooltip.style.left = left + 'px';
-            });            
-          
-
-
-
-
-
-            item.addEventListener('mouseleave', () => {
-                tooltip.classList.remove('visible');
-            });
+                item.addEventListener('mouseleave', () => {
+                    tooltipTimeout = setTimeout(() => {
+                        if (!isMouseOverTooltip) floatingTooltip.classList.remove('visible');
+                    }, 100);
+                });
+            }
             
             item.addEventListener('click', (e) => {
-                if (e.target !== checkbox && matchesFilter) {
-                    checkbox.checked = !checkbox.checked;
-                }
+                if (e.target === checkbox) return;
+                
                 if (matchesFilter) {
+                    checkbox.checked = !checkbox.checked;
                     toggleSelection(index, checkbox.checked);
                 }
             });
@@ -286,12 +276,31 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         
         updateCount();
-    };    
+    };
 
+    if (tooltipCheck.checked) {
+        floatingTooltip.addEventListener('mouseenter', () => {
+            isMouseOverTooltip = true;
+            clearTimeout(tooltipTimeout);
+        });
 
+        floatingTooltip.addEventListener('mouseleave', () => {
+            isMouseOverTooltip = false;
+            floatingTooltip.classList.remove('visible');
+        });
 
+        document.addEventListener('click', (e) => {
+            if (floatingTooltip.classList.contains('visible')) {
+                if (!floatingTooltip.contains(e.target)) {
+                    floatingTooltip.classList.remove('visible');
+                }
+            }
+        });
+    }
 
-
+    tooltipCheck.addEventListener('change', () => {
+        renderList(); 
+    });
 
     const toggleSelection = (index, isSelected) => {
         if (isSelected) {
@@ -378,7 +387,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     searchInput.addEventListener('input', (e) => {
         currentFilter = e.target.value;
-        renderList(); 
+        renderList();
     });
 
     selectAllBtn.addEventListener('click', selectAllVisible);
