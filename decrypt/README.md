@@ -8,6 +8,8 @@ When you export a Lumo chat with the "Encrypt with Password" option, the extensi
 
 This tool reverses that process entirely in your browser. No data is ever sent to a server.
 
+## New added a python script to Encrypt/Decrypt the chats without any web dependencies.
+
 ## 🚀 Usage
 
 1. Open the decryptor page.
