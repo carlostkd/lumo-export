@@ -38,6 +38,12 @@ All processing happens **locally in your browser**. Your data never leaves your 
 | 🎨 **Modern Design** | Sleek dark-mode interface matching the Proton/Lumo ecosystem aesthetic. |
 | 🛠️ **Developer Friendly** | Structured JSON output ready for imports, databases, or custom analysis. |
 | 🔐 **Zero Data Collection** | All processing happens locally in your browser. No data is sent to any server. |
+| 🖥️ **Resizable Window** | Toggle between a compact popup and a **full-size window** for deep analysis. |
+| 💬 **Smart Tooltips** | Hover to read full messages in a scrollable tooltip; click checkboxes to select without closing. |
+| 📊 **Live Stats** | Real-time word count and estimated file size (KB) for selected messages. |
+| 📢 **About & Support** | Built-in modal with release notes, credits, contact info, and a **donation link**. |
+| 🔎 **Live Search** | Instantly filter messages by keyword with **highlighted matches**. |
+
 
 
 ---
