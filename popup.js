@@ -32,8 +32,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let dragInitialTop = 0;
     let currentTooltipHeader = null;
 
-
-
     const resizeBtn = document.getElementById('resizeBtn');
     const resizeIcon = document.getElementById('resizeIcon');
     let isLarge = false;
@@ -65,10 +63,6 @@ document.addEventListener('DOMContentLoaded', () => {
         resizeBtn.addEventListener('click', toggleResize);
     }
 
-
-
-
-
     const settingsBtn = document.getElementById('settingsBtn');
     const aboutModal = document.getElementById('aboutModal');
     const closeModalBtn = document.getElementById('closeModalBtn');
@@ -88,11 +82,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-
-
-
-
-
 
     const setStatus = (message, type = '') => {
         statusDiv.textContent = message;
@@ -187,6 +176,47 @@ document.addEventListener('DOMContentLoaded', () => {
         return packageData;
     };
 
+    const htmlToMarkdown = (html) => {
+        const temp = document.createElement('div');
+        temp.innerHTML = html;
+        
+        const walk = (node) => {
+            if (node.nodeType === 3) return node.nodeValue;
+            if (node.nodeType !== 1) return '';
+            
+            const tag = node.tagName;
+            if (['SCRIPT','STYLE','SVG'].includes(tag)) return '';
+            if (tag === 'BR') return '\n';
+            
+            const kids = Array.from(node.childNodes).map(walk).join('');
+            
+            if (tag === 'PRE') return '\n```\n' + node.textContent + '\n```\n';
+            if (tag === 'CODE') return '`' + kids + '`';
+            if (tag === 'STRONG' || tag === 'B') return '**' + kids + '**';
+            if (tag === 'EM' || tag === 'I') return '*' + kids + '*';
+            if (tag === 'A') {
+                const href = node.getAttribute('href');
+                return href ? '[' + kids + '](' + href + ')' : kids;
+            }
+            if (tag === 'LI') return '- ' + kids + '\n';
+            if (tag === 'H1') return '# ' + kids + '\n\n';
+            if (tag === 'H2') return '## ' + kids + '\n\n';
+            if (tag === 'H3') return '### ' + kids + '\n\n';
+            if (tag === 'H4') return '#### ' + kids + '\n\n';
+            if (tag === 'H5') return '##### ' + kids + '\n\n';
+            if (tag === 'H6') return '###### ' + kids + '\n\n';
+            if (tag === 'BLOCKQUOTE') return '> ' + kids + '\n';
+            if (tag === 'HR') return '\n---\n';
+            if (tag === 'P') return kids + '\n\n';
+            if (tag === 'UL' || tag === 'OL') return kids + '\n';
+            if (tag === 'DIV' || tag === 'SECTION') return kids + '\n';
+            
+            return kids;
+        };
+        
+        return walk(temp).replace(/\n{3,}/g, '\n\n').trim();
+    };
+
     const scanPage = async () => {
         messageListEl.innerHTML = '<div class="loading-list">Scanning chat...</div>';
         
@@ -197,9 +227,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 allContainers.forEach(container => {
                     const isUser = container.classList.contains('user-msg-container');
                     let content = '';
+                    let rawHtml = '';
                     if (isUser) {
                         const textElement = container.querySelector('.whitespace-pre-line');
-                        if (textElement) content = textElement.textContent.trim();
+                        if (textElement) {
+                            content = textElement.textContent.trim();
+                            rawHtml = textElement.innerHTML;
+                        }
                     } else {
                         const textContainer = container.querySelector('.progressive-markdown-content');
                         if (textContainer) {
@@ -209,12 +243,14 @@ document.addEventListener('DOMContentLoaded', () => {
                             const actionToolbar = clone.querySelector('.action-toolbar');
                             if (actionToolbar) actionToolbar.remove();
                             content = clone.textContent.trim();
+                            rawHtml = clone.innerHTML;
                         }
                     }
                     if (content) {
                         messages.push({
                             role: isUser ? 'user' : 'assistant',
-                            content: content
+                            content: content,
+                            rawHtml: rawHtml
                         });
                     }
                 });
@@ -233,13 +269,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 messageListEl.innerHTML = '<div class="loading-list" style="color:#ff6b6b">No messages found. Are you on a chat page?</div>';
             }
         } catch (err) {
-            messageListEl.innerHTML = '<div class="loading-list" style="color:#ff6b6b">Error scanning page.</div>';
+            messageListEl.innerHTML = '<div class="loading-list" style="color:#ff6b6b">Error scanning page: ' + err.message + '</div>';
             console.error(err);
         }
     };
-
-
-
 
     const renderList = () => {
         messageListEl.innerHTML = '';
@@ -385,20 +418,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateCount();
     };
 
-
-
-
-
-
-
-
-
-
-
-
-
-    
-        floatingTooltip.addEventListener('mouseenter', () => {
+    floatingTooltip.addEventListener('mouseenter', () => {
         isMouseOverTooltip = true;
         clearTimeout(tooltipTimeout);
     });
@@ -435,7 +455,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    
     tooltipCheck.addEventListener('change', () => {
         renderList(); 
     });
@@ -449,7 +468,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateCount();
     };
 
-        const updateCount = () => {
+    const updateCount = () => {
         selectedCountEl.textContent = `${selectedIndices.size} message${selectedIndices.size !== 1 ? 's' : ''} selected`;
         exportBtn.disabled = selectedIndices.size === 0;
         if (selectedIndices.size === 0) {
@@ -471,8 +490,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         statsEl.textContent = `${totalWords.toLocaleString()} words · ${sizeKB} KB`;
     };
-
-
 
     const selectAllVisible = () => {
         const items = messageListEl.children;
@@ -606,9 +623,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     extension = 'txt';
                     filename = `lumo-chat-export-${timestamp}.${extension}`;
                 } else if (format === '3') {
-
-
-
                     let html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Lumo Chat Export</title><style>body{font-family:sans-serif;max-width:800px;margin:2rem auto;padding:0 1rem;line-height:1.6;background:#fafafa}.message{margin-bottom:1.5rem;padding:1rem;border-radius:8px}.user{background:#e3f2fd}.assistant{background:#f5f5f5}.role{font-weight:bold;margin-bottom:0.5rem;color:#555;text-transform:uppercase;font-size:12px}.content{white-space:pre-wrap}</style></head><body><h1>Lumo Chat Export - ${timestamp}</h1>`;
                     filteredMessages.forEach(m => {
                         const safeContent = m.content.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -620,14 +634,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     extension = 'html';
                     filename = `lumo-chat-export-${timestamp}.${extension}`;
                 } else if (format === '4') {
-                  
                     let md = `# Lumo Chat Export\n\n`;
                     md += `**Date:** ${timestamp}\n\n`;
                     md += `---\n\n`;
                     
                     filteredMessages.forEach(m => {
                         const roleTitle = m.role === 'user' ? 'You' : 'Lumo';
-                        md += `**${roleTitle}:**\n${m.content}\n\n`;
+                        if (m.role === 'assistant' && m.rawHtml) {
+                            md += `**${roleTitle}:**\n${htmlToMarkdown(m.rawHtml)}\n\n`;
+                        } else {
+                            md += `**${roleTitle}:**\n${m.content}\n\n`;
+                        }
                     });
                     
                     content = md;
@@ -644,11 +661,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     extension = 'json';
                     filename = `lumo-chat-export-${timestamp}.${extension}`;
                 }
-             }
-
-
-
-
+            }
 
             const blob = new Blob([content], { type: mimeType });
             const url = URL.createObjectURL(blob);
@@ -674,4 +687,5 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     scanPage();
+
 });
