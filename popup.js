@@ -24,6 +24,14 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentFilter = '';
     let tooltipTimeout = 0;
     let isMouseOverTooltip = false;
+   
+    let isDraggingTooltip = false;
+    let dragStartX = 0;
+    let dragStartY = 0;
+    let dragInitialLeft = 0;
+    let dragInitialTop = 0;
+    let currentTooltipHeader = null;
+
 
 
     const resizeBtn = document.getElementById('resizeBtn');
@@ -230,6 +238,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+
+
+
     const renderList = () => {
         messageListEl.innerHTML = '';
         
@@ -264,9 +275,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 checkbox.disabled = true;
             }
             
-            const contentDiv = document.createElement('div');
-            contentDiv.className = 'list-item-content';
-            
+            const rowContentDiv = document.createElement('div');
+            rowContentDiv.className = 'list-item-content';
+
             const roleSpan = document.createElement('div');
             roleSpan.className = `list-item-role ${msg.role}`;
             roleSpan.textContent = msg.role === 'user' ? 'You' : 'Lumo';
@@ -275,56 +286,87 @@ document.addEventListener('DOMContentLoaded', () => {
             textSpan.className = 'list-item-content-text';
             textSpan.textContent = msg.content.substring(0, 60) + (msg.content.length > 60 ? '...' : '');
             
-            contentDiv.appendChild(roleSpan);
-            contentDiv.appendChild(textSpan);
+            rowContentDiv.appendChild(roleSpan);
+            rowContentDiv.appendChild(textSpan);
             item.appendChild(checkbox);
-            item.appendChild(contentDiv);
+            item.appendChild(rowContentDiv);
             
             if (tooltipsEnabled) {
                 item.addEventListener('mouseenter', () => {
                     if (!matchesFilter) return;
                     clearTimeout(tooltipTimeout);
                     
-                    let displayContent = msg.content
-                        .replace(/&/g, '&amp;')
-                        .replace(/</g, '&lt;')
-                        .replace(/>/g, '&gt;');
+                    floatingTooltip.innerHTML = '';
+                    
+                    const header = document.createElement('div');
+                    header.className = 'tooltip-header';
+                    header.textContent = msg.role === 'user' ? 'You' : 'Lumo';
+                    floatingTooltip.appendChild(header);
+
+                    const tooltipContentDiv = document.createElement('div');
+                    tooltipContentDiv.className = 'tooltip-content';
                     
                     if (filterLower) {
-                        const regex = new RegExp('(' + filterLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
-                        displayContent = displayContent.replace(regex, '<span class="highlight-match">$1</span>');
+                        const escapedFilter = filterLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                        const regex = new RegExp(`(${escapedFilter})`, 'gi');
+                        const parts = msg.content.split(regex);
+                        parts.forEach(part => {
+                            if (part.toLowerCase() === filterLower) {
+                                const span = document.createElement('span');
+                                span.className = 'highlight-match';
+                                span.textContent = part;
+                                tooltipContentDiv.appendChild(span);
+                            } else {
+                                tooltipContentDiv.appendChild(document.createTextNode(part));
+                            }
+                        });
+                    } else {
+                        tooltipContentDiv.textContent = msg.content;
                     }
-                    
-                    floatingTooltip.innerHTML = `<div class="tooltip-role ${msg.role}">${msg.role === 'user' ? 'You' : 'Lumo'}</div><div class="tooltip-text">${displayContent}</div>`;
-                    floatingTooltip.classList.add('visible');
-                     
+                    floatingTooltip.appendChild(tooltipContentDiv);
+
+                    header.addEventListener('mousedown', (e) => {
+                        isDraggingTooltip = true;
+                        currentTooltipHeader = header;
+                        dragStartX = e.clientX;
+                        dragStartY = e.clientY;
+                        dragInitialLeft = floatingTooltip.offsetLeft;
+                        dragInitialTop = floatingTooltip.offsetTop;
+                        floatingTooltip.style.cursor = 'grabbing';
+                        e.preventDefault();
+                    });
+
                     const rect = item.getBoundingClientRect();
                     let top = rect.bottom + 5;
                     let left = rect.left + 30;
-                
-                    if (left + 340 > window.innerWidth) {
-                    left = window.innerWidth - 350;
-                    }
-                    if (left < 5) left = 5;
-                    if (top + 400 > window.innerHeight) {
-                    top = rect.top - 410;
-                    }
-                    if (top < 5) top = 5;                    
                     
-                    floatingTooltip.style.top = top + 'px';
-                    floatingTooltip.style.left = left + 'px';
-                    });
+                    if (left + 340 > window.innerWidth) left = window.innerWidth - 350;
+                    if (left < 5) left = 5;
+                    if (top + 400 > window.innerHeight) top = rect.top - 410;
+                    if (top < 5) top = 5;
+                    
+                    floatingTooltip.style.top = `${top}px`;
+                    floatingTooltip.style.left = `${left}px`;
+                    floatingTooltip.classList.add('visible');
+                });
                 
                 item.addEventListener('mouseleave', () => {
+                    clearTimeout(tooltipTimeout);
                     tooltipTimeout = setTimeout(() => {
-                        if (!isMouseOverTooltip) floatingTooltip.classList.remove('visible');
-                    }, 100);
+                        if (!isMouseOverTooltip) {
+                            floatingTooltip.classList.remove('visible');
+                            if (isDraggingTooltip) {
+                                isDraggingTooltip = false;
+                                currentTooltipHeader = null;
+                                floatingTooltip.style.cursor = 'grab';
+                            }
+                        }
+                    }, 200);
                 });
             }
             
             item.addEventListener('click', (e) => {
                 if (e.target === checkbox) return;
-                
                 if (matchesFilter) {
                     checkbox.checked = !checkbox.checked;
                     toggleSelection(index, checkbox.checked);
@@ -343,26 +385,57 @@ document.addEventListener('DOMContentLoaded', () => {
         updateCount();
     };
 
-    if (tooltipCheck.checked) {
+
+
+
+
+
+
+
+
+
+
+
+
+    
         floatingTooltip.addEventListener('mouseenter', () => {
-            isMouseOverTooltip = true;
-            clearTimeout(tooltipTimeout);
-        });
+        isMouseOverTooltip = true;
+        clearTimeout(tooltipTimeout);
+    });
 
-        floatingTooltip.addEventListener('mouseleave', () => {
-            isMouseOverTooltip = false;
-            floatingTooltip.classList.remove('visible');
-        });
+    floatingTooltip.addEventListener('mouseleave', () => {
+        isMouseOverTooltip = false;
+        clearTimeout(tooltipTimeout);
+        floatingTooltip.classList.remove('visible');
+    });
 
-        document.addEventListener('click', (e) => {
-            if (floatingTooltip.classList.contains('visible')) {
-                if (!floatingTooltip.contains(e.target)) {
-                    floatingTooltip.classList.remove('visible');
-                }
+    document.addEventListener('click', (e) => {
+        if (floatingTooltip.classList.contains('visible')) {
+            if (!floatingTooltip.contains(e.target)) {
+                floatingTooltip.classList.remove('visible');
             }
-        });
-    }
+        }
+    });
 
+    document.addEventListener('mousemove', (e) => {
+        if (!isDraggingTooltip || !currentTooltipHeader) return;
+        const clientX = e.clientX;
+        const clientY = e.clientY;
+        const deltaX = clientX - dragStartX;
+        const deltaY = clientY - dragStartY;
+        floatingTooltip.style.left = `${dragInitialLeft + deltaX}px`;
+        floatingTooltip.style.top = `${dragInitialTop + deltaY}px`;
+    });
+
+    document.addEventListener('mouseup', () => {
+        if (isDraggingTooltip) {
+            isDraggingTooltip = false;
+            currentTooltipHeader = null;
+            floatingTooltip.style.cursor = 'grab';
+        }
+    });
+
+    
     tooltipCheck.addEventListener('change', () => {
         renderList(); 
     });
@@ -526,11 +599,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 filename = `lumo-chat-encrypted-${timestamp}.${extension}`;
             } else {
                 const filteredMessages = Array.from(selectedIndices).map(i => allMessages[i]);
+
                 if (format === '2') {
                     content = filteredMessages.map(m => `[${m.role.toUpperCase()}]:\n${m.content}\n`).join('\n---\n');
                     mimeType = 'text/plain';
                     extension = 'txt';
+                    filename = `lumo-chat-export-${timestamp}.${extension}`;
                 } else if (format === '3') {
+
+
+
                     let html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Lumo Chat Export</title><style>body{font-family:sans-serif;max-width:800px;margin:2rem auto;padding:0 1rem;line-height:1.6;background:#fafafa}.message{margin-bottom:1.5rem;padding:1rem;border-radius:8px}.user{background:#e3f2fd}.assistant{background:#f5f5f5}.role{font-weight:bold;margin-bottom:0.5rem;color:#555;text-transform:uppercase;font-size:12px}.content{white-space:pre-wrap}</style></head><body><h1>Lumo Chat Export - ${timestamp}</h1>`;
                     filteredMessages.forEach(m => {
                         const safeContent = m.content.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -540,6 +618,22 @@ document.addEventListener('DOMContentLoaded', () => {
                     content = html;
                     mimeType = 'text/html';
                     extension = 'html';
+                    filename = `lumo-chat-export-${timestamp}.${extension}`;
+                } else if (format === '4') {
+                  
+                    let md = `# Lumo Chat Export\n\n`;
+                    md += `**Date:** ${timestamp}\n\n`;
+                    md += `---\n\n`;
+                    
+                    filteredMessages.forEach(m => {
+                        const roleTitle = m.role === 'user' ? 'You' : 'Lumo';
+                        md += `**${roleTitle}:**\n${m.content}\n\n`;
+                    });
+                    
+                    content = md;
+                    mimeType = 'text/markdown';
+                    extension = 'md';
+                    filename = `lumo-chat-export-${timestamp}.md`;
                 } else {
                     content = JSON.stringify({
                         exportedAt: new Date().toISOString(),
@@ -548,9 +642,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     }, null, 2);
                     mimeType = 'application/json';
                     extension = 'json';
+                    filename = `lumo-chat-export-${timestamp}.${extension}`;
                 }
-                filename = `lumo-chat-export-${timestamp}.${extension}`;
-            }
+             }
+
+
+
+
 
             const blob = new Blob([content], { type: mimeType });
             const url = URL.createObjectURL(blob);

@@ -693,3 +693,72 @@ body.full-window .container {
     background: rgba(108, 99, 255, 0.1);
     color: #ffffff;
 }
+
+
+
+.floating-tooltip {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    width: 340px;
+    max-height: 400px;
+    background: #0f172a;
+    color: #e0e0e0;
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+    border: 1px solid #334155;
+    font-size: 12px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+    pointer-events: auto;
+    cursor: grab;
+    user-select: none;
+    touch-action: none;
+    overflow: hidden;
+}
+
+.floating-tooltip.visible {
+    display: block;
+}
+
+.floating-tooltip:active {
+    cursor: grabbing;
+}
+
+.floating-tooltip .tooltip-header {
+    cursor: grab;
+    padding: 10px 14px;
+    background: rgba(108, 99, 255, 0.15);
+    border-bottom: 1px solid rgba(108, 99, 255, 0.3);
+    border-radius: 10px 10px 0 0;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #6c63ff;
+    user-select: none;
+    pointer-events: auto;
+}
+
+.floating-tooltip .tooltip-content {
+    cursor: text;
+    pointer-events: auto;
+    padding: 14px;
+    max-height: 350px;
+    overflow-y: auto;
+}
+
+
+.tooltip-header::after {
+    content: "⤢"; 
+    font-size: 14px;
+    color: #6c63ff;
+    opacity: 0.6;
+    margin-left: 8px;
+    pointer-events: none; 
+    user-select: none;
+}
+
+.tooltip-header:hover::after {
+    opacity: 1;
+}
