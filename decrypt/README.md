@@ -10,6 +10,12 @@ This tool reverses that process entirely in your browser. No data is ever sent t
 
 ## New added a python script to Encrypt/Decrypt the chats without any web dependencies.
 
+Install the dependencies firts:
+
+```
+pip install cryptography
+```
+
 ## 🚀 Usage
 
 1. Open the decryptor page.
