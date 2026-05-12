@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Lumo Chat Export",
-  "version": "5.3",
+  "version": "5.4",
   "description": "Instantly export your Lumo chat history to JSON, TXT, or HTML. Privacy-focused and secure.",
   "permissions": [
     "activeTab",

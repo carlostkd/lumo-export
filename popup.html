@@ -92,6 +92,12 @@
             <span class="btn-text">Export Selected</span>
             <div class="loader"></div>
            </button>
+           <button id="extractCodeBtn" class="btn" style="background: linear-gradient(135deg, #51cf66, #2b8a3e); margin-top: 8px;">
+            <span class="btn-text">📦 Extract Code Blocks</span>
+            <div class="loader"></div>
+           </button>
+
+
 
 
         <div id="exportStats" class="export-stats"></div>
@@ -103,6 +109,35 @@
     </div>
     <script src="popup.js"></script>
 
+
+        <div id="codeExtractModal" class="modal-overlay hidden">
+            <div class="modal-content" style="max-width: 700px;">
+                <div class="modal-header">
+                    <h2>Extract Code Blocks (<span id="codeCount">0</span> found)</h2>
+                    <button id="closeCodeModalBtn" class="modal-close">&times;</button>
+                </div>
+                
+                <div class="modal-body">
+                    <div class="section">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <button id="selectAllCodeBtn" class="text-btn">Select All</button>
+                            <button id="deselectAllCodeBtn" class="text-btn">Deselect All</button>
+                        </div>
+                        <div id="codeList" style="max-height: 400px; overflow-y: auto; border: 1px solid #2a2a4a; border-radius: 8px; background: #16213e;">
+                            <!-- Code snippets will be injected here -->
+                        </div>
+                    </div>
+
+                    <div class="section" style="border-top: 1px solid #2a2a4a; padding-top: 15px;">
+                        <label style="display: block; margin-bottom: 8px; font-size: 12px; color: #a0a0b0;">Export Format:</label>
+                        <div style="display: flex; gap: 10px;">
+                            <button id="exportCodeMdBtn" class="btn" style="flex: 1; background: linear-gradient(135deg, #6c63ff, #3f37c9);">Markdown (.md)</button>
+                            <button id="exportCodeTxtBtn" class="btn" style="flex: 1; background: linear-gradient(135deg, #6c63ff, #3f37c9);">Text (.txt)</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <div id="aboutModal" class="modal-overlay hidden">
             <div class="modal-content">
@@ -122,6 +157,7 @@
                             <li><strong>AES-256 Encryption:</strong> Secure your backups with passwords.</li>
                             <li><strong>Markdown</strong> Export</li>
                             <li><strong>Draggable</strong> Tooltips</li>
+                            <li><strong>Export code blocks</strong> only</li>
                         </ul>
                     </div>
 

@@ -23,6 +23,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const loader = exportBtn.querySelector('.loader');
     const floatingTooltip = document.getElementById('floatingTooltip');
 
+    const extractCodeBtn = document.getElementById('extractCodeBtn');
+    const codeExtractModal = document.getElementById('codeExtractModal');
+    const closeCodeModalBtn = document.getElementById('closeCodeModalBtn');
+    const codeListEl = document.getElementById('codeList');
+    const codeCountEl = document.getElementById('codeCount');
+    const selectAllCodeBtn = document.getElementById('selectAllCodeBtn');
+    const deselectAllCodeBtn = document.getElementById('deselectAllCodeBtn');
+    const exportCodeMdBtn = document.getElementById('exportCodeMdBtn');
+    const exportCodeTxtBtn = document.getElementById('exportCodeTxtBtn');
+
+    let extractedCodes = []; // Stores { lang, code, index }
+
+
+
+
+
+
     let allMessages = [];
     let selectedIndices = new Set();
     let currentFilter = '';
@@ -744,6 +761,156 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    scanPage();
+  
+
+
+    const scanCodeBlocks = async () => {
+        extractCodeBtn.disabled = true;
+        extractCodeBtn.classList.add('loading');
+        
+        const script = `
+            (function() {
+                const codes = document.querySelectorAll('code[class^="language-"]');
+                const results = [];
+                codes.forEach((code, i) => {
+                    const className = code.className;
+                    const match = className.match(/language-(\\w+)/);
+                    const lang = match ? match[1] : 'text';
+                    const text = code.textContent.trim();
+                    const preview = text.split('\\n').slice(0, 2).join(' | ');
+                    results.push({
+                        index: i + 1,
+                        lang: lang,
+                        code: text,
+                        preview: preview
+                    });
+                });
+                return results;
+            })();
+        `;
+
+        try {
+            const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
+            const result = await browser.tabs.executeScript(tab.id, { code: script });
+            
+            if (result && result[0]) {
+                extractedCodes = result[0];
+                renderCodeList();
+                codeExtractModal.classList.remove('hidden');
+                codeExtractModal.classList.add('active');
+            } else {
+                setStatus('No code blocks found.', 'error');
+            }
+        } catch (err) {
+            setStatus('Error scanning code: ' + err.message, 'error');
+        } finally {
+            extractCodeBtn.disabled = false;
+            extractCodeBtn.classList.remove('loading');
+        }
+    };
+
+    const renderCodeList = () => {
+        codeListEl.innerHTML = '';
+        codeCountEl.textContent = extractedCodes.length;
+        
+        extractedCodes.forEach((item, idx) => {
+            const row = document.createElement('div');
+            row.className = 'list-item';
+            row.style.borderBottom = '1px solid #2a2a4a';
+            row.style.padding = '8px';
+            
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.checked = true;
+            checkbox.dataset.index = idx;
+            
+            const content = document.createElement('div');
+            content.className = 'list-item-content';
+            
+            const langBadge = document.createElement('span');
+            langBadge.className = 'list-item-role';
+            langBadge.textContent = item.lang.toUpperCase();
+            langBadge.style.marginRight = '8px';
+            
+            const preview = document.createElement('div');
+            preview.className = 'list-item-content-text';
+            preview.textContent = item.preview;
+            
+            content.appendChild(langBadge);
+            content.appendChild(preview);
+            
+            row.appendChild(checkbox);
+            row.appendChild(content);
+            
+            codeListEl.appendChild(row);
+        });
+    };
+
+    extractCodeBtn.addEventListener('click', scanCodeBlocks);
+
+    closeCodeModalBtn.addEventListener('click', () => {
+        codeExtractModal.classList.remove('active');
+        codeExtractModal.classList.add('hidden');
+    });
+
+    selectAllCodeBtn.addEventListener('click', () => {
+        codeListEl.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = true);
+    });
+
+    deselectAllCodeBtn.addEventListener('click', () => {
+        codeListEl.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+    });
+
+    exportCodeMdBtn.addEventListener('click', () => {
+        const selected = extractedCodes.filter((_, i) => codeListEl.querySelectorAll('input[type="checkbox"]')[i].checked);
+        if (selected.length === 0) { setStatus('Select at least one code block.', 'error'); return; }
+        
+        let md = '# Extracted Code Blocks\n\n';
+        selected.forEach((item, i) => {
+            md += `## Snippet ${i+1}: ${item.lang.toUpperCase()}\n\n`;
+            md += '```' + item.lang + '\n';
+            md += item.code + '\n';
+            md += '```\n\n';
+            md += '---\n\n';
+        });
+        
+        const blob = new Blob([md], { type: 'text/markdown' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `lumo-code-extract-${new Date().toISOString().slice(0, 10)}.md`;
+        a.click();
+        URL.revokeObjectURL(url);
+        setStatus(`Exported ${selected.length} code blocks!`, 'success');
+        codeExtractModal.classList.remove('active');
+        codeExtractModal.classList.add('hidden');
+    });
+
+    exportCodeTxtBtn.addEventListener('click', () => {
+        const selected = extractedCodes.filter((_, i) => codeListEl.querySelectorAll('input[type="checkbox"]')[i].checked);
+        if (selected.length === 0) { setStatus('Select at least one code block.', 'error'); return; }
+        
+        let txt = '';
+        selected.forEach((item, i) => {
+            txt += `--- Snippet ${i+1}: ${item.lang.toUpperCase()} ---\n\n`;
+            txt += item.code + '\n\n';
+        });
+        
+        const blob = new Blob([txt], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `lumo-code-extract-${new Date().toISOString().slice(0, 10)}.txt`;
+        a.click();
+        URL.revokeObjectURL(url);
+        setStatus(`Exported ${selected.length} code blocks!`, 'success');
+        codeExtractModal.classList.remove('active');
+        codeExtractModal.classList.add('hidden');
+    });
+
+
+
+
+  scanPage();
 
 });
