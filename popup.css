@@ -95,40 +95,93 @@ label {
     letter-spacing: 0.5px;
 }
 
-.select-wrapper {
-    position: relative;
-}
-
-select {
-    width: 100%;
-    padding: 10px 12px;
-    border: 1px solid #2a2a4a;
-    border-radius: 8px;
-    background: #16213e;
-    color: #e0e0e0;
-    font-size: 13px;
-    cursor: pointer;
-    appearance: none;
-    transition: border-color 0.2s;
-}
 
 select:focus {
     outline: none;
     border-color: #6c63ff;
 }
 
-.select-arrow {
-    position: absolute;
-    right: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 0;
-    height: 0;
-    border-left: 5px solid transparent;
-    border-right: 5px solid transparent;
-    border-top: 5px solid #a0a0b0;
-    pointer-events: none;
+
+.custom-select {
+    position: relative;
+    width: 100%;
+    cursor: pointer;
+    user-select: none;
 }
+
+.custom-selected {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    border: 1px solid #2a2a4a;
+    border-radius: 8px;
+    background: #16213e;
+    color: #e0e0e0;
+    font-size: 13px;
+    transition: border-color 0.2s;
+}
+
+.custom-selected:hover {
+    border-color: #6c63ff;
+}
+
+.custom-arrow {
+    font-size: 10px;
+    color: #a0a0b0;
+    transition: transform 0.2s;
+}
+
+.custom-select.open .custom-arrow {
+    transform: rotate(180deg);
+}
+
+.custom-options {
+    position: absolute;
+    top: 110%;
+    left: 0;
+    right: 0;
+    background: #16213e;
+    border: 1px solid #2a2a4a;
+    border-radius: 8px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 100;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    transition: opacity 0.2s, transform 0.2s;
+}
+
+.custom-options.hidden {
+    display: none;
+}
+
+.custom-option {
+    padding: 10px 12px;
+    color: #e0e0e0;
+    font-size: 13px;
+    transition: background 0.2s;
+}
+
+.custom-option:hover {
+    background: rgba(108, 99, 255, 0.1);
+    color: #ffffff;
+}
+
+.custom-option.selected {
+    background: rgba(108, 99, 255, 0.2);
+    color: #6c63ff;
+    font-weight: 600;
+}
+
+.custom-options::-webkit-scrollbar {
+    width: 6px;
+}
+
+.custom-options::-webkit-scrollbar-thumb {
+    background: #2a2a4a;
+    border-radius: 3px;
+}
+
 
 .checkbox-group {
     margin-top: 8px;

@@ -23,20 +23,26 @@
             </div>
         </div>       
         
-        <div class="form-group">
+                      <div class="form-group">
             <label for="format">Export Format</label>
-            <div class="select-wrapper">
-                 <select id="format">
-                     <option value="1">JSON (Structured Data)</option>
-                     <option value="2">Plain Text (Readable)</option>
-                     <option value="3">HTML (Visual Layout)</option>
-                     <option value="4">Markdown (Standard)</option>
-                 </select>
-
-
-                <div class="select-arrow"></div>
+            <div class="custom-select" id="customFormatSelect">
+                <div class="custom-selected">
+                    <span id="selectedFormatText">JSON (Structured Data)</span>
+                    <span class="custom-arrow">▼</span>
+                </div>
+                <div class="custom-options hidden" id="formatOptions">
+                    <div class="custom-option" data-value="1">JSON (Structured Data)</div>
+                    <div class="custom-option" data-value="2">Plain Text (Readable)</div>
+                    <div class="custom-option" data-value="3">HTML (Visual Layout)</div>
+                    <div class="custom-option" data-value="4">Markdown (Standard)</div>
+                </div>
             </div>
+            <input type="hidden" id="format" value="1">
         </div>
+
+
+
+
 
                  <div class="form-group checkbox-group" style="display: flex; justify-content: space-between; align-items: center;">
             <label class="checkbox-label">

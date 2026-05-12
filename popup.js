@@ -1,6 +1,10 @@
 document.addEventListener('DOMContentLoaded', () => {
     const exportBtn = document.getElementById('exportBtn');
-    const formatSelect = document.getElementById('format');
+    const formatSelect = document.getElementById('format'); 
+    const customSelect = document.getElementById('customFormatSelect');
+    const selectedFormatText = document.getElementById('selectedFormatText');
+    const formatOptions = document.getElementById('formatOptions');
+    const formatOptionsList = formatOptions.querySelectorAll('.custom-option');
     const statusDiv = document.getElementById('status');
     const encryptCheck = document.getElementById('encryptCheck');
     const passwordWrapper = document.getElementById('passwordWrapper');
@@ -31,6 +35,16 @@ document.addEventListener('DOMContentLoaded', () => {
     let dragInitialLeft = 0;
     let dragInitialTop = 0;
     let currentTooltipHeader = null;
+    
+
+    formatOptionsList.forEach(opt => {
+    if (opt.getAttribute('data-value') === formatSelect.value) {
+    opt.classList.add('selected');
+    }
+    });
+
+
+
 
     const resizeBtn = document.getElementById('resizeBtn');
     const resizeIcon = document.getElementById('resizeIcon');
@@ -554,7 +568,51 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         updateCount();
     };
+    
+    customSelect.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isOpen = customSelect.classList.contains('open');
+        
+  
+        document.querySelectorAll('.custom-select').forEach(sel => {
+            sel.classList.remove('open');
+            sel.querySelector('.custom-options').classList.add('hidden');
+        });
 
+        if (!isOpen) {
+            customSelect.classList.add('open');
+            formatOptions.classList.remove('hidden');
+        }
+    });
+
+    formatOptionsList.forEach(option => {
+        option.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const value = option.getAttribute('data-value');
+            const text = option.textContent;
+
+            
+            formatSelect.value = value;
+
+           
+            selectedFormatText.textContent = text;
+
+           
+            formatOptionsList.forEach(opt => opt.classList.remove('selected'));
+            option.classList.add('selected');
+
+          
+            customSelect.classList.remove('open');
+            formatOptions.classList.add('hidden');
+        });
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!customSelect.contains(e.target)) {
+            customSelect.classList.remove('open');
+            formatOptions.classList.add('hidden');
+        }
+    });
     searchInput.addEventListener('input', (e) => {
         currentFilter = e.target.value;
         renderList();
