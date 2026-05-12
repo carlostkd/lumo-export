@@ -8,10 +8,20 @@
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <img src="icon.png" alt="Icon" class="header-icon">
-            <h1>Lumo Export</h1>
-        </div>
+                   <div class="header">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <img src="icon.png" alt="Icon" class="header-icon">
+                <h1>Lumo Export</h1>
+            </div>
+            <div style="display: flex; gap: 8px;">
+                <button id="resizeBtn" class="btn btn-icon" title="Expand Window">
+                    <span id="resizeIcon">⛶</span>
+                </button>
+                <button id="settingsBtn" class="btn btn-icon" title="About & Donate">
+                    <span>⚙️</span>
+                </button>
+            </div>
+        </div>       
         
         <div class="form-group">
             <label for="format">Export Format</label>
@@ -25,48 +35,103 @@
             </div>
         </div>
 
-        <div class="form-group checkbox-group">
+                 <div class="form-group checkbox-group" style="display: flex; justify-content: space-between; align-items: center;">
             <label class="checkbox-label">
                 <input type="checkbox" id="encryptCheck">
                 <span class="checkmark"></span>
                 Encrypt with Password
             </label>
-            <div class="password-input-wrapper hidden" id="passwordWrapper">
-                <input type="password" id="passwordInput" placeholder="Enter strong password">
-                <input type="password" id="confirmPasswordInput" placeholder="Confirm password">
-                <div class="password-hint">Passwords must match. Min 8 chars.</div>
-                <div id="matchStatus" class="match-status hidden">Passwords do not match</div>
-            </div>
+            <label class="checkbox-label" style="margin-left: 15px;">
+                <input type="checkbox" id="tooltipCheck">
+                <span class="checkmark"></span>
+                Enable Tooltips
+            </label>
         </div>
+        <div class="password-input-wrapper hidden" id="passwordWrapper">
+            <input type="password" id="passwordInput" placeholder="Enter strong password">
+            <input type="password" id="confirmPasswordInput" placeholder="Confirm password">
+            <div class="password-hint">Passwords must match. Min 8 chars.</div>
+            <div id="matchStatus" class="match-status hidden">Passwords do not match</div>
+        </div>
+
 
         <div class="form-group">
             <div class="list-header">
-                <span>Select Messages to Export</span>
+                <div class="search-wrapper">
+                    <input type="text" id="searchInput" class="search-input" placeholder="🔍 Search messages...">
+                </div>
                 <div class="list-actions">
                     <button id="selectAllBtn" class="text-btn">All</button>
-                    <button id="selectUserBtn" class="text-btn">All You</button>
-                    <button id="selectLumoBtn" class="text-btn">All Lumo</button>
+                    <button id="selectUserBtn" class="text-btn">You</button>
+                    <button id="selectLumoBtn" class="text-btn">Lumo</button>
                     <button id="deselectAllBtn" class="text-btn">Clear</button>
                 </div>
             </div>
+            
             <div id="messageList" class="message-list">
                 <div class="loading-list">Scanning chat...</div>
             </div>
+            
+            <div id="floatingTooltip" class="floating-tooltip"></div>
+            
             <div class="list-footer">
                 <span id="selectedCount">0 messages selected</span>
             </div>
         </div>
 
-
-
-
-        <button id="exportBtn" class="btn">
+           <button id="exportBtn" class="btn">
             <span class="btn-text">Export Selected</span>
             <div class="loader"></div>
-        </button>
+           </button>
+
+
+        <div id="exportStats" class="export-stats"></div>
+
+        <div id="status" class="status"></div>
+
 
         <div id="status" class="status"></div>
     </div>
     <script src="popup.js"></script>
+
+
+        <!-- NEW: About Modal -->
+        <div id="aboutModal" class="modal-overlay hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>About Lumo Export</h2>
+                    <button id="closeModalBtn" class="modal-close">&times;</button>
+                </div>
+                
+                <div class="modal-body">
+                    <div class="section">
+                        <h3>🚀 What's New (v5.0)</h3>
+                        <ul class="release-notes">
+                            <li><strong>Resizable Window:</strong> Expand to full size for deep analysis.</li>
+                            <li><strong>Smart Tooltips:</strong> Hover to read full messages, click checkbox to select.</li>
+                            <li><strong>Live Stats:</strong> Word count and file size estimation.</li>
+                            <li><strong>Enhanced Search:</strong> Highlight matches in real-time.</li>
+                            <li><strong>AES-256 Encryption:</strong> Secure your backups with passwords.</li>
+                        </ul>
+                    </div>
+
+                    <div class="section">
+                        <h3>👨‍💻 Credits</h3>
+                        <p><strong>Author:</strong> Carlostkd </p>
+                        <p><strong>Built with:</strong> Proton Lumo, Web Crypto API</p>
+                        <p><strong>Contact:</strong> <a href="mailto:hi@carlostkd.slmail.me" target="_blank">hi@carlostkd.slmail.me</a></p>
+                    </div>
+
+                    <div class="section donate-section">
+                        <h3>☕ Support Development</h3>
+                        <p>If you find this tool useful, consider buying me a coffee to keep the lights on!</p>
+                        <a href="https://donate.stripe.com/8wM6pe9DD99xgAofYZ" target="_blank" class="donate-btn">
+                            Donate via Stripe
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
 </body>
 </html>
