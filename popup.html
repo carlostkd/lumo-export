@@ -64,6 +64,30 @@
         </div>
 
 
+        <div class="form-group" style="margin-top: 8px;">
+            <label class="checkbox-label">
+                <input type="checkbox" id="findReplaceCheck">
+                <span class="checkmark"></span>
+                Find & Replace
+            </label>
+            <div class="find-replace-wrapper hidden" id="findReplaceWrapper">
+                <div style="display: flex; gap: 6px; margin-top: 6px;">
+                    <input type="text" id="findInput" placeholder="Find: e.g. home" style="flex: 1; padding: 8px 10px; border: 1px solid #2a2a4a; border-radius: 6px; background: #16213e; color: #e0e0e0; font-size: 12px; outline: none;">
+                    <input type="text" id="replaceInput" placeholder="Replace: e.g. work" style="flex: 1; padding: 8px 10px; border: 1px solid #2a2a4a; border-radius: 6px; background: #16213e; color: #e0e0e0; font-size: 12px; outline: none;">
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
+                    <label class="checkbox-label" style="font-size: 11px;">
+                        <input type="checkbox" id="caseSensitiveCheck">
+                        <span class="checkmark" style="width: 14px; height: 14px; margin-right: 6px;"></span>
+                        Case Sensitive
+                    </label>
+                    <span id="replaceCount" style="font-size: 10px; color: #6c63ff; font-weight: 600;"></span>
+                </div>
+            </div>
+        </div>
+
+
+             
         <div class="form-group">
             <div class="list-header">
                 <div class="search-wrapper">
@@ -158,6 +182,7 @@
                             <li><strong>Markdown</strong> Export</li>
                             <li><strong>Draggable</strong> Tooltips</li>
                             <li><strong>Export code blocks</strong> only</li>
+                            <li><strong>Edit & replace</strong> during the export</li>
                         </ul>
                     </div>
 

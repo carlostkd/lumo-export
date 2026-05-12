@@ -33,8 +33,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const exportCodeMdBtn = document.getElementById('exportCodeMdBtn');
     const exportCodeTxtBtn = document.getElementById('exportCodeTxtBtn');
 
-    let extractedCodes = []; // Stores { lang, code, index }
+    let extractedCodes = []; 
+    
 
+    const findReplaceCheck = document.getElementById('findReplaceCheck');
+    const findReplaceWrapper = document.getElementById('findReplaceWrapper');
+    const findInput = document.getElementById('findInput');
+    const replaceInput = document.getElementById('replaceInput');
+    const caseSensitiveCheck = document.getElementById('caseSensitiveCheck');
+    const replaceCountEl = document.getElementById('replaceCount');
 
 
 
@@ -162,6 +169,60 @@ document.addEventListener('DOMContentLoaded', () => {
             matchStatus.classList.add('hidden');
         }
     });
+
+    
+    findReplaceCheck.addEventListener('change', () => {
+        if (findReplaceCheck.checked) {
+            findReplaceWrapper.classList.remove('hidden');
+            findInput.focus();
+        } else {
+            findReplaceWrapper.classList.add('hidden');
+            findInput.value = '';
+            replaceInput.value = '';
+            replaceCountEl.textContent = '';
+            caseSensitiveCheck.checked = false;
+        }
+    });
+
+    const applyFindReplace = (text) => {
+        if (!findReplaceCheck.checked) return text;
+        const find = findInput.value;
+        const replace = replaceInput.value;
+        if (!find) return text;
+        
+        if (caseSensitiveCheck.checked) {
+            return text.split(find).join(replace);
+        } else {
+            const regex = new RegExp(find.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+            return text.replace(regex, replace);
+        }
+    };
+
+    const updateReplaceCount = () => {
+        if (!findReplaceCheck.checked || !findInput.value) {
+            replaceCountEl.textContent = '';
+            return;
+        }
+        const find = findInput.value;
+        let count = 0;
+        allMessages.forEach(m => {
+            if (caseSensitiveCheck.checked) {
+                const parts = m.content.split(find);
+                count += parts.length - 1;
+            } else {
+                const regex = new RegExp(find.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+                const matches = m.content.match(regex);
+                if (matches) count += matches.length;
+            }
+        });
+        replaceCountEl.textContent = count + ' match' + (count !== 1 ? 'es' : '');
+    };
+
+    findInput.addEventListener('input', updateReplaceCount);
+    replaceInput.addEventListener('input', updateReplaceCount);
+    caseSensitiveCheck.addEventListener('change', updateReplaceCount);
+
+
 
     passwordInput.addEventListener('input', checkPasswordMatch);
     confirmPasswordInput.addEventListener('input', checkPasswordMatch);
@@ -678,7 +739,12 @@ document.addEventListener('DOMContentLoaded', () => {
             let content, mimeType, extension, filename;
 
             if (isEncrypted) {
-                const filteredMessages = Array.from(selectedIndices).map(i => allMessages[i]);
+                    const filteredMessages = Array.from(selectedIndices).map(i => {
+                    const msg = { ...allMessages[i] };
+                    msg.content = applyFindReplace(msg.content);
+                    if (msg.rawHtml) msg.rawHtml = applyFindReplace(msg.rawHtml);
+                    return msg;
+                });
                 const jsonString = JSON.stringify({
                     exportedAt: new Date().toISOString(),
                     totalMessages: filteredMessages.length,
@@ -690,7 +756,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 extension = 'json.enc';
                 filename = `lumo-chat-encrypted-${timestamp}.${extension}`;
             } else {
-                const filteredMessages = Array.from(selectedIndices).map(i => allMessages[i]);
+                                const filteredMessages = Array.from(selectedIndices).map(i => {
+                    const msg = { ...allMessages[i] };
+                    msg.content = applyFindReplace(msg.content);
+                    if (msg.rawHtml) msg.rawHtml = applyFindReplace(msg.rawHtml);
+                    return msg;
+                });
 
                 if (format === '2') {
                     content = filteredMessages.map(m => `[${m.role.toUpperCase()}]:\n${m.content}\n`).join('\n---\n');

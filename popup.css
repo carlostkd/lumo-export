@@ -603,7 +603,6 @@ body.full-window .container {
 }
 
 
-/* --- Modal Styles --- */
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -814,4 +813,27 @@ body.full-window .container {
 
 .tooltip-header:hover::after {
     opacity: 1;
+}
+
+
+
+.find-replace-wrapper {
+    margin-top: 10px;
+    transition: all 0.3s;
+}
+
+.find-replace-wrapper.hidden {
+    display: none;
+    opacity: 0;
+    transform: translateY(-5px);
+}
+
+.find-replace-wrapper:not(.hidden) {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+#findInput:focus, #replaceInput:focus {
+    border-color: #6c63ff;
 }
