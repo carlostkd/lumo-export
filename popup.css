@@ -67,7 +67,7 @@ select {
     font-size: 13px;
     cursor: pointer;
     appearance: none;
-    transition: border-color 0.2s;
+    transition: border-color 0.2s ease;
 }
 
 select:focus {
@@ -114,7 +114,7 @@ select:focus {
     border-radius: 4px;
     margin-right: 8px;
     background: #16213e;
-    transition: all 0.2s;
+    transition: all 0.2s ease;
     position: relative;
 }
 
@@ -137,7 +137,7 @@ select:focus {
 
 .password-input-wrapper {
     margin-top: 10px;
-    transition: all 0.3s;
+    transition: all 0.3s ease;
 }
 
 .password-input-wrapper.hidden {
@@ -186,13 +186,6 @@ select:focus {
     display: none;
 }
 
-.tooltip-hint {
-    font-size: 10px;
-    color: #8888aa;
-    margin-top: 2px;
-    font-style: italic;
-}
-
 .list-header {
     display: flex;
     justify-content: space-between;
@@ -231,7 +224,6 @@ select:focus {
     border-radius: 8px;
     padding: 4px 0;
     margin-bottom: 8px;
-    position: relative;
 }
 
 .message-list::-webkit-scrollbar {
@@ -250,7 +242,6 @@ select:focus {
     border-bottom: 1px solid #2a2a4a;
     cursor: pointer;
     transition: background 0.2s;
-    position: relative;
 }
 
 .list-item:last-child {
@@ -259,10 +250,6 @@ select:focus {
 
 .list-item:hover {
     background: rgba(108, 99, 255, 0.1);
-}
-
-.list-item.hidden {
-    display: none;
 }
 
 .list-item input[type="checkbox"] {
@@ -312,80 +299,6 @@ select:focus {
     margin-top: 4px;
 }
 
-.floating-tooltip {
-    display: none;
-    position: fixed;
-    z-index: 9999;
-    width: 340px;
-    max-height: 400px;
-    background: #0f172a;
-    color: #e0e0e0;
-    border-radius: 10px;
-    padding: 14px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.7);
-    border: 1px solid #334155;
-    font-size: 12px;
-    line-height: 1.5;
-    white-space: pre-wrap;
-    word-break: break-word;
-    overflow-y: auto;
-    pointer-events: auto;
-}
-
-.floating-tooltip.visible {
-    display: block;
-}
-
-.floating-tooltip .tooltip-role {
-    font-size: 10px;
-    font-weight: 700;
-    text-transform: uppercase;
-    margin-bottom: 6px;
-    color: #6c63ff;
-}
-
-.floating-tooltip .tooltip-role.user {
-    color: #51cf66;
-}
-
-.floating-tooltip .tooltip-text {
-    color: #cbd5e1;
-}
-
-.highlight-match {
-    background: rgba(251, 191, 36, 0.4);
-    color: #ffffff;
-    padding: 1px 3px;
-    border-radius: 3px;
-    font-weight: 600;
-}
-
-.search-wrapper {
-    flex: 1;
-    margin-right: 10px;
-}
-
-.search-input {
-    width: 80%;
-    padding: 6px 10px;
-    border: 1px solid #2a2a4a;
-    border-radius: 6px;
-    background: #16213e; /* Fixed: Dark background */
-    color: #e0e0e0;
-    font-size: 12px;
-    outline: none;
-    transition: border-color 0.2s;
-}
-
-.search-input:focus {
-    border-color: #6c63ff;
-}
-
-.search-input::placeholder {
-    color: #6c63ff;
-    opacity: 0.7;
-}
-
 .btn {
     width: 100%;
     padding: 12px;
@@ -396,7 +309,7 @@ select:focus {
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.2s ease;
     position: relative;
     overflow: hidden;
     display: flex;
@@ -422,7 +335,7 @@ select:focus {
 }
 
 .btn-text {
-    transition: opacity 0.2s;
+    transition: opacity 0.2s ease;
 }
 
 .loader {
@@ -454,7 +367,7 @@ select:focus {
     min-height: 18px;
     color: #6c63ff;
     font-weight: 500;
-    transition: opacity 0.3s;
+    transition: opacity 0.3s ease;
 }
 
 .status.error {
@@ -463,12 +376,4 @@ select:focus {
 
 .status.success {
     color: #51cf66;
-}
-
-.export-stats {
-    margin-top: 8px;
-    font-size: 11px;
-    color: #8888aa;
-    text-align: center;
-    min-height: 16px;
 }
