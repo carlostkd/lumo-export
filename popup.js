@@ -168,7 +168,6 @@ document.addEventListener('DOMContentLoaded', () => {
         helpBtn.addEventListener('click', () => {
             helpModal.classList.remove('hidden');
             helpModal.classList.add('active');
-            loadHelpContent();
         });
 
         closeHelpBtn.addEventListener('click', () => {
@@ -362,10 +361,22 @@ document.addEventListener('DOMContentLoaded', () => {
         return packageData;
     };
 
-    const htmlToMarkdown = (html) => {
-        const temp = document.createElement('div');
-        temp.innerHTML = html;
-        
+
+
+        const escapeHtml = (text) => {
+        if (!text) return '';
+        return text
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+        };
+        const htmlToMarkdown = (html) => {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const temp = doc.body;
+                  
         const walk = (node) => {
             if (node.nodeType === 3) return node.nodeValue;
             if (node.nodeType !== 1) return '';
@@ -402,6 +413,9 @@ document.addEventListener('DOMContentLoaded', () => {
         
         return walk(temp).replace(/\n{3,}/g, '\n\n').trim();
     };
+
+
+
 
     const scanPage = async () => {
         messageListEl.innerHTML = '<div class="loading-list">Scanning chat...</div>';
@@ -451,13 +465,28 @@ document.addEventListener('DOMContentLoaded', () => {
             if (result && result[0]) {
                 allMessages = result[0];
                 renderList();
-            } else {
-                messageListEl.innerHTML = '<div class="loading-list" style="color:#ff6b6b">No messages found. Are you on a chat page?</div>';
+                         } else {
+                messageListEl.textContent = '';
+                const noMsgDiv = document.createElement('div');
+                noMsgDiv.className = 'loading-list';
+                noMsgDiv.style.color = '#ff6b6b';
+                noMsgDiv.textContent = 'No messages found. Are you on a chat page?';
+                messageListEl.appendChild(noMsgDiv);
             }
-        } catch (err) {
-            messageListEl.innerHTML = '<div class="loading-list" style="color:#ff6b6b">Error scanning page: ' + err.message + '</div>';
+
+
+            } catch (err) {
+            messageListEl.textContent = '';
+            const errDiv = document.createElement('div');
+            errDiv.className = 'loading-list';
+            errDiv.style.color = '#ff6b6b';
+            errDiv.textContent = 'Error scanning page: ' + err.message;
+            messageListEl.appendChild(errDiv);
             console.error(err);
         }
+
+
+
     };
 
     const renderList = () => {
@@ -1078,17 +1107,34 @@ document.addEventListener('DOMContentLoaded', () => {
     const loadPermissions = () => {
         browser.permissions.getAll().then(result => {
             const perms = result.permissions || [];
-            const list = perms.map(p => {
-                if (p === 'activeTab') return '✅ activeTab: Access to the current tab only.';
-                if (p === 'downloads') return '✅ downloads: Save files to your device.';
-                if (p === 'management') return '✅ management: Scan for conflicting extensions.';
-                return '⚠️ ' + p;
-            }).join('<br>');
-            permListEl.innerHTML = list || 'No permissions found.';
+            permListEl.textContent = '';
+            
+            if (perms.length === 0) {
+                permListEl.textContent = 'No permissions found.';
+                return;
+            }
+
+            perms.forEach((p, index) => {
+                let text = '';
+                if (p === 'activeTab') text = '✅ activeTab: Access to the current tab only.';
+                else if (p === 'downloads') text = '✅ downloads: Save files to your device.';
+                else if (p === 'management') text = '✅ management: Scan for conflicting extensions.';
+                else text = '⚠️ ' + p;
+
+                const span = document.createElement('span');
+                span.textContent = text;
+                permListEl.appendChild(span);
+
+                if (index < perms.length - 1) {
+                    const br = document.createElement('br');
+                    permListEl.appendChild(br);
+                }
+            });
         }).catch(() => {
-            permListEl.innerHTML = 'Unable to load permissions.';
+            permListEl.textContent = 'Unable to load permissions.';
         });
     };
+
 
 
     const runEnvCheck = async () => {
@@ -1121,14 +1167,37 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) {
             checks.push('❌ Manifest: Error');
         }
+                envStatusEl.textContent = '';
 
+        checks.forEach((check, index) => {
+            const span = document.createElement('span');
+            span.textContent = check;
+            envStatusEl.appendChild(span);
+
+            if (index < checks.length - 1) {
+                const br = document.createElement('br');
+                envStatusEl.appendChild(br);
+            }
+        });
+
+        const spacer = document.createElement('br');
+        envStatusEl.appendChild(spacer);
+        const spacer2 = document.createElement('br');
+        envStatusEl.appendChild(spacer2);
+
+        const summary = document.createElement('strong');
         if (checks.every(c => c.startsWith('✅'))) {
-            envStatusEl.innerHTML = checks.join('<br>') + '<br><br><strong style="color:#51cf66">Environment Healthy!</strong>';
+            summary.textContent = 'Environment Healthy!';
+            summary.style.color = '#51cf66';
             envStatusEl.style.color = '#51cf66';
         } else {
-            envStatusEl.innerHTML = checks.join('<br>') + '<br><br><strong style="color:#ff6b6b">Issues Detected!</strong>';
+            summary.textContent = 'Issues Detected!';
+            summary.style.color = '#ff6b6b';
             envStatusEl.style.color = '#ff6b6b';
         }
+        envStatusEl.appendChild(summary);
+
+
     };
 
 
@@ -1148,45 +1217,103 @@ document.addEventListener('DOMContentLoaded', () => {
                 const isSuspicious = hasAllUrls || name.includes('inject') || name.includes('scraper') || name.includes('monitor');
                 
                 if (isSuspicious) {
-                    suspicious.push(`<span style="color:#ff6b6b">⚠️ ${ext.name}</span> (Broad permissions)`);
+                  suspicious.push({ name: ext.name, label: 'Broad permissions' });
                 } else {
                     safe.push(`${ext.name}`);
                 }
             });
 
-            let html = '';
-            if (suspicious.length > 0) {
-                html += '<strong>Potential Conflicts:</strong><br>' + suspicious.join('<br>') + '<br><br>';
-            }
-            html += '<strong>Safe Extensions (' + safe.length + '):</strong><br>' + safe.join('<br>');            
-            extListEl.innerHTML = html;
+                        extListEl.textContent = '';
             extListEl.style.color = '#e0e0e0';
+
+            if (suspicious.length > 0) {
+                const title = document.createElement('strong');
+                title.textContent = 'Potential Conflicts:';
+                extListEl.appendChild(title);
+
+                const br = document.createElement('br');
+                extListEl.appendChild(br);
+
+                suspicious.forEach((item, index) => {
+                    const span = document.createElement('span');
+                    span.style.color = '#ff6b6b';
+                    span.textContent = '⚠️ ' + item.name;
+                    extListEl.appendChild(span);
+
+                    const text = document.createElement('span');
+                    text.textContent = ' (' + item.label + ')';
+                    extListEl.appendChild(text);
+
+                    if (index < suspicious.length - 1) {
+                        const brLine = document.createElement('br');
+                        extListEl.appendChild(brLine);
+                    }
+                });
+
+                const br2 = document.createElement('br');
+                extListEl.appendChild(br2);
+                const br3 = document.createElement('br');
+                extListEl.appendChild(br3);
+            }
+
+            const safeTitle = document.createElement('strong');
+            safeTitle.textContent = 'Safe Extensions (' + safe.length + '):';
+            extListEl.appendChild(safeTitle);
+
+            const br4 = document.createElement('br');
+            extListEl.appendChild(br4);
+
+            safe.forEach((item, index) => {
+                const span = document.createElement('span');
+                span.textContent = item;
+                extListEl.appendChild(span);
+
+                if (index < safe.length - 1) {
+                    const brLine = document.createElement('br');
+                    extListEl.appendChild(brLine);
+                }
+            });
         } catch (e) {
-            extListEl.innerHTML = 'Error scanning extensions: ' + e.message;
+            extListEl.textContent = 'Error scanning extensions: ' + e.message;
             extListEl.style.color = '#ff6b6b';
         }
     };
-
 
 
     const runInjectionTest = async () => {
         injectStatusEl.innerHTML = 'Testing injection...';
         injectStatusEl.style.color = '#ffd700';
         
-        try {
+
+              try {
             const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
             const result = await browser.tabs.executeScript(tab.id, { code: '1+1;' });
+            
+            injectStatusEl.textContent = '';
+            
             if (result && result[0] === 2) {
-                injectStatusEl.innerHTML = '✅ Injection Successful. No blocking detected.';
+                const successSpan = document.createElement('span');
+                successSpan.textContent = '✅ Injection Successful. No blocking detected.';
+                successSpan.style.color = '#51cf66';
+                injectStatusEl.appendChild(successSpan);
                 injectStatusEl.style.color = '#51cf66';
             } else {
-                injectStatusEl.innerHTML = '❌ Unexpected result from injection.';
+                const failSpan = document.createElement('span');
+                failSpan.textContent = '❌ Unexpected result from injection.';
+                failSpan.style.color = '#ff6b6b';
+                injectStatusEl.appendChild(failSpan);
                 injectStatusEl.style.color = '#ff6b6b';
             }
         } catch (e) {
-            injectStatusEl.innerHTML = '❌ Injection Failed: ' + e.message;
+            injectStatusEl.textContent = '';
+            const errorSpan = document.createElement('span');
+            errorSpan.textContent = '❌ Injection Failed: ' + e.message;
+            errorSpan.style.color = '#ff6b6b';
+            injectStatusEl.appendChild(errorSpan);
             injectStatusEl.style.color = '#ff6b6b';
         }
+
+
     };
 
 
@@ -1200,17 +1327,62 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const result = await verifyIntegrity();
         
-        if (result.status === 'valid') {
-                        integrityStatusEl.innerHTML = `✅ Code Integrity Verified.<br><span style="font-size:10px;word-break:break-all;color:#6c63ff;">Hash: ${result.hash}</span>`;
+               if (result.status === 'valid') {
+            integrityStatusEl.textContent = '';
             integrityStatusEl.style.color = '#51cf66';
+
+            const successText = document.createElement('span');
+            successText.textContent = '✅ Code Integrity Verified.';
+            integrityStatusEl.appendChild(successText);
+
+            const br1 = document.createElement('br');
+            integrityStatusEl.appendChild(br1);
+
+            const hashLabel = document.createElement('span');
+            hashLabel.style.fontSize = '10px';
+            hashLabel.style.wordBreak = 'break-all';
+            hashLabel.style.color = '#6c63ff';
+            hashLabel.textContent = 'Hash: ' + result.hash;
+            integrityStatusEl.appendChild(hashLabel);
+
         } else if (result.status === 'invalid') {
-            integrityStatusEl.innerHTML = `❌ Code Tampering Detected!<br><span style="font-size:10px;word-break:break-all;color:#ff6b6b;">Expected: ${result.expected}<br>Actual: ${result.actual}</span>`;
+            integrityStatusEl.textContent = '';
             integrityStatusEl.style.color = '#ff6b6b';
 
+            const failText = document.createElement('span');
+            failText.textContent = '❌ Code Tampering Detected!';
+            integrityStatusEl.appendChild(failText);
+
+            const br1 = document.createElement('br');
+            integrityStatusEl.appendChild(br1);
+
+            const expectedLabel = document.createElement('span');
+            expectedLabel.style.fontSize = '10px';
+            expectedLabel.style.wordBreak = 'break-all';
+            expectedLabel.style.color = '#ff6b6b';
+            expectedLabel.textContent = 'Expected: ' + result.expected;
+            integrityStatusEl.appendChild(expectedLabel);
+
+            const br2 = document.createElement('br');
+            integrityStatusEl.appendChild(br2);
+
+            const actualLabel = document.createElement('span');
+            actualLabel.style.fontSize = '10px';
+            actualLabel.style.wordBreak = 'break-all';
+            actualLabel.style.color = '#ff6b6b';
+            actualLabel.textContent = 'Actual: ' + result.actual;
+            integrityStatusEl.appendChild(actualLabel);
+
         } else {
-            integrityStatusEl.innerHTML = `❌ Error: ${result.message}`;
+            integrityStatusEl.textContent = '';
             integrityStatusEl.style.color = '#ff6b6b';
+
+            const errorText = document.createElement('span');
+            errorText.textContent = '❌ Error: ' + result.message;
+            integrityStatusEl.appendChild(errorText);
         }
+
+
     });
 
 
@@ -1251,52 +1423,6 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
 
-
-    const loadHelpContent = () => {
-        const content = `
-            <div class="section">
-                <h3>📥 Exporting Chats</h3>
-                <p><strong>One-Click Export:</strong> Select messages (or use "Select All") and click <strong>Export Selected</strong>.</p>
-                <p><strong>Formats:</strong> Choose from JSON (structured), Plain Text, HTML (visual), or <strong>Markdown</strong> (preserves code blocks).</p>
-                <p><strong>Encryption:</strong> Check "Encrypt with Password" to secure your export with AES-256.</p>
-            </div>
-
-            <div class="section">
-                <h3>🔍 Finding & Replacing Text</h3>
-                <p>Enable <strong>Find & Replace</strong> to anonymize or modify content before export.</p>
-                <p><strong>Pro Tip:</strong> Enter multiple words separated by commas!</p>
-                <ul>
-                    <li><strong>Find:</strong> <code>Save,Home,John</code></li>
-                    <li><strong>Replace:</strong> <code>Downloaded,Work,Justin</code></li>
-                </ul>
-                <p>This will replace "Save"→"Downloaded", "Home"→"Work", and "John"→"Justin" simultaneously.</p>
-            </div>
-
-            <div class="section">
-                <h3>📦 Extracting Code Blocks</h3>
-                <p>Click <strong>📦 Extract Code Blocks</strong> to scan the entire chat for code snippets.</p>
-                <p>Preview all snippets, select specific ones, and export them as a single Markdown file or individual text files.</p>
-            </div>
-
-            <div class="section">
-                <h3>🛡️ Security & Integrity</h3>
-                <p><strong>Environment Health:</strong> Checks if your browser supports necessary APIs.</p>
-                <p><strong>Extension Audit:</strong> Scans for other extensions that might conflict or pose risks.</p>
-                <p><strong>Code Integrity:</strong> Verifies that the extension code hasn't been tampered with using SHA-256 hashing.</p>
-            </div>
-
-            <div class="section">
-                <h3>💡 Tips & Tricks</h3>
-                <ul>
-                    <li><strong>Resizable Window:</strong> Click the ⛶ button to expand the popup for better visibility.</li>
-                    <li><strong>Smart Tooltips:</strong> Hover over any message to read the full text without selecting it.</li>
-                    <li><strong>Live Search:</strong> Type in the search box to instantly filter messages and highlight matches.</li>
-                    <li><strong>Custom Dropdown:</strong> Click the format selector to see all export options in a styled menu.</li>
-                </ul>
-            </div>
-        `;
-        helpBodyEl.innerHTML = content;
-    };
 
 
 

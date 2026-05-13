@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lumo Chat Export</title>
-    <!-- EXPECTED_HASH: a2cc047d63ae17a98b6122bb41a1f3ed392df2b2502c557d3edc1945d56d565f -->
+    <!-- EXPECTED_HASH: f571c385f88167bfad4cb74b32faaa15d82b9742dd6c917e3adc539ba85f6492 -->
     <link rel="stylesheet" href="popup.css">
 </head>
 <body>
@@ -274,11 +274,50 @@
                     <button id="closeHelpBtn" class="modal-close">&times;</button>
                 </div>
                 
-                <div class="modal-body" id="helpBody">
-                </div>
-            </div>
-        </div>
 
+
+                <div class="modal-body" id="helpBody">
+                    <div class="section">
+                        <h3>📥 Exporting Chats</h3>
+                        <p><strong>One-Click Export:</strong> Select messages (or use "Select All") and click <strong>Export Selected</strong>.</p>
+                        <p><strong>Formats:</strong> Choose from JSON (structured), Plain Text, HTML (visual), or <strong>Markdown</strong> (preserves code blocks).</p>
+                        <p><strong>Encryption:</strong> Check "Encrypt with Password" to secure your export with AES-256.</p>
+                    </div>
+
+                    <div class="section">
+                        <h3>🔍 Finding & Replacing Text</h3>
+                        <p>Enable <strong>Find & Replace</strong> to anonymize or modify content before export.</p>
+                        <p><strong>Pro Tip:</strong> Enter multiple words separated by commas!</p>
+                        <ul>
+                            <li><strong>Find:</strong> <code>Save,Home,John</code></li>
+                            <li><strong>Replace:</strong> <code>Downloaded,Work,Justin</code></li>
+                        </ul>
+                        <p>This will replace "Save"→"Downloaded", "Home"→"Work", and "John"→"Justin" simultaneously.</p>
+                    </div>
+
+                    <div class="section">
+                        <h3>📦 Extracting Code Blocks</h3>
+                        <p>Click <strong>📦 Extract Code Blocks</strong> to scan the entire chat for code snippets.</p>
+                        <p>Preview all snippets, select specific ones, and export them as a single Markdown file or individual text files.</p>
+                    </div>
+
+                    <div class="section">
+                        <h3>🛡️ Security & Integrity</h3>
+                        <p><strong>Environment Health:</strong> Checks if your browser supports necessary APIs.</p>
+                        <p><strong>Extension Audit:</strong> Scans for other extensions that might conflict or pose risks.</p>
+                        <p><strong>Code Integrity:</strong> Verifies that the extension code hasn't been tampered with using SHA-256 hashing.</p>
+                    </div>
+
+                    <div class="section">
+                        <h3>💡 Tips & Tricks</h3>
+                        <ul>
+                            <li><strong>Resizable Window:</strong> Click the ⛶ button to expand the popup for better visibility.</li>
+                            <li><strong>Smart Tooltips:</strong> Hover over any message to read the full text without selecting it.</li>
+                            <li><strong>Live Search:</strong> Type in the search box to instantly filter messages and highlight matches.</li>
+                            <li><strong>Custom Dropdown:</strong> Click the format selector to see all export options in a styled menu.</li>
+                        </ul>
+                    </div>
+                </div>
 
 </body>
 </html>
