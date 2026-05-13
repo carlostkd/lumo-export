@@ -14,23 +14,6 @@
 
 ---
 
-
-## 📸 Screenshots
-
-<img src="assets/lumo.png" width="300" alt="Extension Frontpage">
-*Extension Frontpage*
-
-<img src="assets/lumo1.png" width="300" alt="Security integrity check">
-*Security integrity check.*
-
-<img src="assets/lumo2.png" width="300" alt="Help & Guide">
-*Help & Guide*
-
-<img src="assets/lumo3.png" width="300" alt="About">
-*About*
-
-
-
 ## 🎯 About
 
 **Lumo Chat Export** is a Firefox extension that fills a critical gap in Proton's Lumo interface  the ability to export conversation history. Since Proton doesn't offer a native export feature yet, this extension provides a secure, privacy-focused solution that lets you save your entire chat history in multiple formats.
@@ -42,6 +25,28 @@ Or Download in html format for embeded into webpages.
 All processing happens **locally in your browser**. Your data never leaves your device.
 
 ---
+
+## 📸 Screenshots
+
+<div style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: center;">
+  <div style="text-align: center;">
+    <img src="assets/lumo.png" width="300" alt="Frontpage"><br>
+    <sub><b>Frontpage</b></sub>
+  </div>
+  <div style="text-align: center;">
+    <img src="assets/lumo1.png" width="300" alt="Security"><br>
+    <sub><b>Security</b></sub>
+  </div>
+  <div style="text-align: center;">
+    <img src="assets/lumo2.png" width="300" alt="Help"><br>
+    <sub><b>Help</b></sub>
+  </div>
+  <div style="text-align: center;">
+    <img src="assets/lumo3.png" width="300" alt="About"><br>
+    <sub><b>About</b></sub>
+  </div>
+</div>
+
 
 ## ✨ Features
 
