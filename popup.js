@@ -35,6 +35,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let extractedCodes = []; 
     
+       
+    const securityBtn = document.getElementById('securityBtn');
+    const securityModal = document.getElementById('securityModal');
+    const closeSecurityBtn = document.getElementById('closeSecurityBtn');
+    const envStatusEl = document.getElementById('envStatus');
+    const runEnvCheckBtn = document.getElementById('runEnvCheckBtn');
+    const extListEl = document.getElementById('extList');
+    const scanExtBtn = document.getElementById('scanExtBtn');
+    const injectStatusEl = document.getElementById('injectStatus');
+    const runInjectTestBtn = document.getElementById('runInjectTestBtn');
+    const permListEl = document.getElementById('permList');
+
+
+
+
 
     const findReplaceCheck = document.getElementById('findReplaceCheck');
     const findReplaceWrapper = document.getElementById('findReplaceWrapper');
@@ -120,6 +135,30 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+
+        if (securityBtn && securityModal) {
+        securityBtn.addEventListener('click', () => {
+            securityModal.classList.remove('hidden');
+            securityModal.classList.add('active');
+            loadPermissions();
+        });
+
+        closeSecurityBtn.addEventListener('click', () => {
+            securityModal.classList.remove('active');
+            securityModal.classList.add('hidden');
+        });
+
+        securityModal.addEventListener('click', (e) => {
+            if (e.target === securityModal) {
+                securityModal.classList.remove('active');
+                securityModal.classList.add('hidden');
+            }
+        });
+    }
+
+
+
 
     const setStatus = (message, type = '') => {
         statusDiv.textContent = message;
@@ -981,6 +1020,124 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+    const loadPermissions = () => {
+        browser.permissions.getAll().then(result => {
+            const perms = result.permissions || [];
+            const list = perms.map(p => {
+                if (p === 'activeTab') return '✅ activeTab: Access to the current tab only.';
+                if (p === 'downloads') return '✅ downloads: Save files to your device.';
+                if (p === 'management') return '✅ management: Scan for conflicting extensions.';
+                return '⚠️ ' + p;
+            }).join('<br>');
+            permListEl.innerHTML = list || 'No permissions found.';
+        }).catch(() => {
+            permListEl.innerHTML = 'Unable to load permissions.';
+        });
+    };
+
+
+    const runEnvCheck = async () => {
+        envStatusEl.innerHTML = 'Running checks...';
+        envStatusEl.style.color = '#ffd700';
+        
+        const checks = [];
+        
+        try {
+            if (window.crypto && window.crypto.subtle) {
+                checks.push('✅ Web Crypto API: Available');
+            } else {
+                checks.push('❌ Web Crypto API: Missing');
+            }
+        } catch (e) {
+            checks.push('❌ Web Crypto API: Error');
+        }
+
+        try {
+            const tabs = await browser.tabs.query({ active: true, currentWindow: true });
+            if (tabs.length > 0) checks.push('✅ Tabs API: Available');
+            else checks.push('❌ Tabs API: Failed');
+        } catch (e) {
+            checks.push('❌ Tabs API: Error');
+        }
+
+        try {
+            const manifest = browser.runtime.getManifest();
+            checks.push(`✅ Manifest Version: ${manifest.manifest_version}`);
+        } catch (e) {
+            checks.push('❌ Manifest: Error');
+        }
+
+        if (checks.every(c => c.startsWith('✅'))) {
+            envStatusEl.innerHTML = checks.join('<br>') + '<br><br><strong style="color:#51cf66">Environment Healthy!</strong>';
+            envStatusEl.style.color = '#51cf66';
+        } else {
+            envStatusEl.innerHTML = checks.join('<br>') + '<br><br><strong style="color:#ff6b6b">Issues Detected!</strong>';
+            envStatusEl.style.color = '#ff6b6b';
+        }
+    };
+
+
+
+    const scanExtensions = async () => {
+        extListEl.innerHTML = 'Scanning...';
+        extListEl.style.color = '#ffd700';
+        
+        try {
+            const extensions = await browser.management.getAll();
+            const suspicious = [];
+            const safe = [];
+
+            extensions.forEach(ext => {
+                const hasAllUrls = ext.permissions && ext.permissions.includes('<all_urls>');
+                const name = ext.name.toLowerCase();
+                const isSuspicious = hasAllUrls || name.includes('inject') || name.includes('scraper') || name.includes('monitor');
+                
+                if (isSuspicious) {
+                    suspicious.push(`<span style="color:#ff6b6b">⚠️ ${ext.name}</span> (Broad permissions)`);
+                } else {
+                    safe.push(`${ext.name}`);
+                }
+            });
+
+            let html = '';
+            if (suspicious.length > 0) {
+                html += '<strong>Potential Conflicts:</strong><br>' + suspicious.join('<br>') + '<br><br>';
+            }
+            html += '<strong>Safe Extensions (' + safe.length + '):</strong><br>' + safe.join('<br>');            
+            extListEl.innerHTML = html;
+            extListEl.style.color = '#e0e0e0';
+        } catch (e) {
+            extListEl.innerHTML = 'Error scanning extensions: ' + e.message;
+            extListEl.style.color = '#ff6b6b';
+        }
+    };
+
+
+
+    const runInjectionTest = async () => {
+        injectStatusEl.innerHTML = 'Testing injection...';
+        injectStatusEl.style.color = '#ffd700';
+        
+        try {
+            const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
+            const result = await browser.tabs.executeScript(tab.id, { code: '1+1;' });
+            if (result && result[0] === 2) {
+                injectStatusEl.innerHTML = '✅ Injection Successful. No blocking detected.';
+                injectStatusEl.style.color = '#51cf66';
+            } else {
+                injectStatusEl.innerHTML = '❌ Unexpected result from injection.';
+                injectStatusEl.style.color = '#ff6b6b';
+            }
+        } catch (e) {
+            injectStatusEl.innerHTML = '❌ Injection Failed: ' + e.message;
+            injectStatusEl.style.color = '#ff6b6b';
+        }
+    };
+
+
+    runEnvCheckBtn.addEventListener('click', runEnvCheck);
+    scanExtBtn.addEventListener('click', scanExtensions);
+    runInjectTestBtn.addEventListener('click', runInjectionTest);
 
   scanPage();
 

@@ -17,10 +17,14 @@
                 <button id="resizeBtn" class="btn btn-icon" title="Expand Window">
                     <span id="resizeIcon">⛶</span>
                 </button>
+                <button id="securityBtn" class="btn btn-icon" title="Security & Integrity">
+                    <span>🛡️</span>
+                </button>
                 <button id="settingsBtn" class="btn btn-icon" title="About & Donate">
                     <span>⚙️</span>
                 </button>
             </div>
+
         </div>       
         
                       <div class="form-group">
@@ -203,6 +207,50 @@
                 </div>
             </div>
         </div>
+
+        <div id="securityModal" class="modal-overlay hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Security & Integrity</h2>
+                    <button id="closeSecurityBtn" class="modal-close">&times;</button>
+                </div>
+                
+                <div class="modal-body">
+                    <div class="section">
+                        <h3>Environment Health</h3>
+                        <div id="envStatus" style="padding: 10px; background: #16213e; border-radius: 6px; margin-bottom: 10px;">
+                            Ready to run health check
+                        </div>
+                        <button id="runEnvCheckBtn" class="btn" style="width: 100%; margin-bottom: 15px;">Run Full Health Check</button>
+                    </div>
+
+                    <div class="section">
+                        <h3>Installed Extensions Audit</h3>
+                        <div id="extList" style="max-height: 200px; overflow-y: auto; background: #16213e; border-radius: 6px; padding: 10px; font-size: 12px;">
+                            Click "Scan Extensions" to check for potential conflicts.
+                        </div>
+                        <button id="scanExtBtn" class="btn" style="width: 100%; margin-top: 10px;">Scan Installed Extensions</button>
+                    </div>
+
+                    <div class="section">
+                        <h3>Injection Test</h3>
+                        <div id="injectStatus" style="padding: 10px; background: #16213e; border-radius: 6px; margin-bottom: 10px;">
+                            Ready to test.
+                        </div>
+                        <button id="runInjectTestBtn" class="btn" style="width: 100%;">Test Code Injection</button>
+                    </div>
+
+                    <div class="section">
+                        <h3>Permissions Overview</h3>
+                        <div id="permList" style="font-size: 12px; color: #cbd5e1; line-height: 1.6;">
+                            <!-- Permissions will be listed here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
 
 </body>
 </html>

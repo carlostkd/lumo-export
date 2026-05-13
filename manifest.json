@@ -5,7 +5,8 @@
   "description": "Instantly export your Lumo chat history to JSON, TXT, or HTML. Privacy-focused and secure.",
   "permissions": [
     "activeTab",
-    "downloads"
+    "downloads",
+    "management"
   ],
   "browser_action": {
     "default_popup": "popup.html",
