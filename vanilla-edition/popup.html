@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lumo Chat Export</title>
+    <!-- EXPECTED_HASH: 20272da0ebf248dbe91f89f0a4f7ea835445115cb66a48221fcbd4a41eca3b6c -->
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <div class="container">
+                   <div class="header">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <img src="icon.png" alt="Icon" class="header-icon">
+                <h1>Lumo Export</h1>
+            </div>
+            <div style="display: flex; gap: 8px;">
+                <button id="resizeBtn" class="btn btn-icon" title="Expand Window">
+                    <span id="resizeIcon">⛶</span>
+                </button>
+                <button id="securityBtn" class="btn btn-icon" title="Security & Integrity">
+                    <span>🛡️</span>
+                </button>
+               <button id="helpBtn" class="btn btn-icon" title="Help & Guide">
+                    <span>❓</span>
+                </button>
+                 <button id="logsBtn" class="btn btn-icon" title="Connection Logs">
+                    <span>📜</span>
+                </button>
+                <button id="settingsBtn" class="btn btn-icon" title="About & Donate">
+                    <span>⚙️</span>
+                </button>
+            </div>
+
+        </div>       
+        
+                      <div class="form-group">
+            <label for="format">Export Format</label>
+            <div class="custom-select" id="customFormatSelect">
+                <div class="custom-selected">
+                    <span id="selectedFormatText">JSON (Structured Data)</span>
+                    <span class="custom-arrow">▼</span>
+                </div>
+                <div class="custom-options hidden" id="formatOptions">
+                    <div class="custom-option" data-value="1">JSON (Structured Data)</div>
+                    <div class="custom-option" data-value="2">Plain Text (Readable)</div>
+                    <div class="custom-option" data-value="3">HTML (Visual Layout)</div>
+                    <div class="custom-option" data-value="4">Markdown (Standard)</div>
+                </div>
+            </div>
+            <input type="hidden" id="format" value="1">
+        </div>
+
+
+
+
+
+                 <div class="form-group checkbox-group" style="display: flex; justify-content: space-between; align-items: center;">
+            <label class="checkbox-label">
+                <input type="checkbox" id="encryptCheck">
+                <span class="checkmark"></span>
+                Encrypt with Password
+            </label>
+            <label class="checkbox-label" style="margin-left: 15px;">
+                <input type="checkbox" id="tooltipCheck">
+                <span class="checkmark"></span>
+                Enable Tooltips
+            </label>
+        </div>
+        <div class="password-input-wrapper hidden" id="passwordWrapper">
+            <input type="password" id="passwordInput" placeholder="Enter strong password">
+            <input type="password" id="confirmPasswordInput" placeholder="Confirm password">
+            <div class="password-hint">Passwords must match. Min 8 chars.</div>
+            <div id="matchStatus" class="match-status hidden">Passwords do not match</div>
+        </div>
+
+
+        <div class="form-group" style="margin-top: 8px;">
+            <label class="checkbox-label">
+                <input type="checkbox" id="findReplaceCheck">
+                <span class="checkmark"></span>
+                Find & Replace
+            </label>
+            <div class="find-replace-wrapper hidden" id="findReplaceWrapper">
+                <div style="display: flex; gap: 6px; margin-top: 6px;">
+                    <input type="text" id="findInput" placeholder="Find: e.g. home" style="flex: 1; padding: 8px 10px; border: 1px solid #2a2a4a; border-radius: 6px; background: #16213e; color: #e0e0e0; font-size: 12px; outline: none;">
+                    <input type="text" id="replaceInput" placeholder="Replace: e.g. work" style="flex: 1; padding: 8px 10px; border: 1px solid #2a2a4a; border-radius: 6px; background: #16213e; color: #e0e0e0; font-size: 12px; outline: none;">
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
+                    <label class="checkbox-label" style="font-size: 11px;">
+                        <input type="checkbox" id="caseSensitiveCheck">
+                        <span class="checkmark" style="width: 14px; height: 14px; margin-right: 6px;"></span>
+                        Case Sensitive
+                    </label>
+                    <span id="replaceCount" style="font-size: 10px; color: #6c63ff; font-weight: 600;"></span>
+                </div>
+            </div>
+        </div>
+
+
+             
+        <div class="form-group">
+            <div class="list-header">
+                <div class="search-wrapper">
+                    <input type="text" id="searchInput" class="search-input" placeholder="🔍 Search messages...">
+                </div>
+                <div class="list-actions">
+                    <button id="selectAllBtn" class="text-btn">All</button>
+                    <button id="selectUserBtn" class="text-btn">You</button>
+                    <button id="selectLumoBtn" class="text-btn">Lumo</button>
+                    <button id="deselectAllBtn" class="text-btn">Clear</button>
+                </div>
+            </div>
+            
+            <div id="messageList" class="message-list">
+                <div class="loading-list">Scanning chat...</div>
+            </div>
+            
+            <div id="floatingTooltip" class="floating-tooltip"></div>
+            
+            <div class="list-footer">
+                <span id="selectedCount">0 messages selected</span>
+            </div>
+        </div>
+
+           <button id="exportBtn" class="btn">
+            <span class="btn-text">Export Selected</span>
+            <div class="loader"></div>
+           </button>
+           <button id="extractCodeBtn" class="btn" style="background: linear-gradient(135deg, #51cf66, #2b8a3e); margin-top: 8px;">
+            <span class="btn-text">📦 Extract Code Blocks</span>
+            <div class="loader"></div>
+           </button>
+
+
+
+
+        <div id="exportStats" class="export-stats"></div>
+
+        <div id="status" class="status"></div>
+
+
+        <div id="status" class="status"></div>
+    </div>
+    <script src="popup.js"></script>
+
+
+        <div id="codeExtractModal" class="modal-overlay hidden">
+            <div class="modal-content" style="max-width: 700px;">
+                <div class="modal-header">
+                    <h2>Extract Code Blocks (<span id="codeCount">0</span> found)</h2>
+                    <button id="closeCodeModalBtn" class="modal-close">&times;</button>
+                </div>
+                
+                <div class="modal-body">
+                    <div class="section">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <button id="selectAllCodeBtn" class="text-btn">Select All</button>
+                            <button id="deselectAllCodeBtn" class="text-btn">Deselect All</button>
+                        </div>
+                        <div id="codeList" style="max-height: 400px; overflow-y: auto; border: 1px solid #2a2a4a; border-radius: 8px; background: #16213e;">
+                            <!-- Code snippets will be injected here -->
+                        </div>
+                    </div>
+
+                    <div class="section" style="border-top: 1px solid #2a2a4a; padding-top: 15px;">
+                        <label style="display: block; margin-bottom: 8px; font-size: 12px; color: #a0a0b0;">Export Format:</label>
+                        <div style="display: flex; gap: 10px;">
+                            <button id="exportCodeMdBtn" class="btn" style="flex: 1; background: linear-gradient(135deg, #6c63ff, #3f37c9);">Markdown (.md)</button>
+                            <button id="exportCodeTxtBtn" class="btn" style="flex: 1; background: linear-gradient(135deg, #6c63ff, #3f37c9);">Text (.txt)</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="aboutModal" class="modal-overlay hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>About Lumo Export</h2>
+                    <button id="closeModalBtn" class="modal-close">&times;</button>
+                </div>
+                
+                <div class="modal-body">
+                    <div class="section">
+                        <h3>🚀 What's New (v6.2)</h3>
+                        <ul class="release-notes">
+                            <li><strong>Resizable Window:</strong> Expand to full size for deep analysis.</li>
+                            <li><strong>Smart Tooltips:</strong> Hover to read full messages, click checkbox to select.</li>
+                            <li><strong>Live Stats:</strong> Word count and file size estimation.</li>
+                            <li><strong>Enhanced Search:</strong> Highlight matches in real-time.</li>
+                            <li><strong>AES-256 Encryption:</strong> Secure your backups with passwords.</li>
+                            <li><strong>Markdown</strong> Export</li>
+                            <li><strong>Draggable</strong> Tooltips</li>
+                            <li><strong>Export code blocks</strong> only</li>
+                            <li><strong>Edit & replace</strong> during the export</li>
+                            <li><strong>Security & Integrity</strong> audits</li>
+                            <li><strong>Help Modal</strong> List all commands</li>
+                        </ul>
+                    </div>
+
+                    <div class="section">
+                        <h3>👨‍💻 Credits</h3>
+                        <p><strong>Author:</strong> Carlostkd </p>
+                        <p><strong>Built with:</strong> Proton Lumo, Web Crypto API</p>
+                        <p><strong>Contact:</strong> <a href="mailto:hi@carlostkd.slmail.me" target="_blank">hi@carlostkd.slmail.me</a></p>
+                    </div>
+
+                    <div class="section donate-section">
+                        <h3>☕ Support Development</h3>
+                        <p>If you find this tool useful, consider buying me a coffee to keep the lights on!</p>
+                        <a href="https://donate.stripe.com/8wM6pe9DD99xgAofYZ" target="_blank" class="donate-btn">
+                            Donate via Stripe
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="securityModal" class="modal-overlay hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Security & Integrity</h2>
+                    <button id="closeSecurityBtn" class="modal-close">&times;</button>
+                </div>
+                
+                <div class="modal-body">
+                    <div class="section">
+                        <h3>Environment Health</h3>
+                        <div id="envStatus" style="padding: 10px; background: #16213e; border-radius: 6px; margin-bottom: 10px;">
+                            Ready to run health check
+                        </div>
+                        <button id="runEnvCheckBtn" class="btn" style="width: 100%; margin-bottom: 15px;">Run Full Health Check</button>
+                    </div>
+
+                  <div class="section">
+                        <h3>Code Integrity Check</h3>
+                        <div id="integrityStatus" style="padding: 10px; background: #16213e; border-radius: 6px; margin-bottom: 10px;">
+                            Ready to verify code integrity.
+                        </div>
+                        <button id="runIntegrityCheckBtn" class="btn" style="width: 100%;">Verify Code Integrity</button>
+                    </div>
+
+
+
+                    <div class="section">
+                        <h3>Installed Extensions Audit</h3>
+                        <div id="extList" style="max-height: 200px; overflow-y: auto; background: #16213e; border-radius: 6px; padding: 10px; font-size: 12px;">
+                            Click "Scan Extensions" to check for potential conflicts.
+                        </div>
+                        <button id="scanExtBtn" class="btn" style="width: 100%; margin-top: 10px;">Scan Installed Extensions</button>
+                    </div>
+
+                    <div class="section">
+                        <h3>Injection Test</h3>
+                        <div id="injectStatus" style="padding: 10px; background: #16213e; border-radius: 6px; margin-bottom: 10px;">
+                            Ready to test.
+                        </div>
+                        <button id="runInjectTestBtn" class="btn" style="width: 100%;">Test Code Injection</button>
+                    </div>
+
+                    <div class="section">
+                        <h3>Permissions Overview</h3>
+                        <div id="permList" style="font-size: 12px; color: #cbd5e1; line-height: 1.6;">
+                            <!-- Permissions will be listed here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div id="helpModal" class="modal-overlay hidden">
+            <div class="modal-content" style="max-width: 600px;">
+                <div class="modal-header">
+                    <h2>Help & Guide</h2>
+                    <button id="closeHelpBtn" class="modal-close">&times;</button>
+                </div>
+                
+
+
+                <div class="modal-body" id="helpBody">
+                    <div class="section">
+                        <h3>📥 Exporting Chats</h3>
+                        <p><strong>One-Click Export:</strong> Select messages (or use "Select All") and click <strong>Export Selected</strong>.</p>
+                        <p><strong>Formats:</strong> Choose from JSON (structured), Plain Text, HTML (visual), or <strong>Markdown</strong> (preserves code blocks).</p>
+                        <p><strong>Encryption:</strong> Check "Encrypt with Password" to secure your export with AES-256.</p>
+                    </div>
+
+                    <div class="section">
+                        <h3>🔍 Finding & Replacing Text</h3>
+                        <p>Enable <strong>Find & Replace</strong> to anonymize or modify content before export.</p>
+                        <p><strong>Pro Tip:</strong> Enter multiple words separated by commas!</p>
+                        <ul>
+                            <li><strong>Find:</strong> <code>Save,Home,John</code></li>
+                            <li><strong>Replace:</strong> <code>Downloaded,Work,Justin</code></li>
+                        </ul>
+                        <p>This will replace "Save"→"Downloaded", "Home"→"Work", and "John"→"Justin" simultaneously.</p>
+                    </div>
+
+                    <div class="section">
+                        <h3>📦 Extracting Code Blocks</h3>
+                        <p>Click <strong>📦 Extract Code Blocks</strong> to scan the entire chat for code snippets.</p>
+                        <p>Preview all snippets, select specific ones, and export them as a single Markdown file or individual text files.</p>
+                    </div>
+
+                    <div class="section">
+                        <h3>🛡️ Security & Integrity</h3>
+                        <p><strong>Environment Health:</strong> Checks if your browser supports necessary APIs.</p>
+                        <p><strong>Extension Audit:</strong> Scans for other extensions that might conflict or pose risks.</p>
+                        <p><strong>Code Integrity:</strong> Verifies that the extension code hasn't been tampered with using SHA-256 hashing.</p>
+                    </div>
+
+                    <div class="section">
+                        <h3>💡 Tips & Tricks</h3>
+                        <ul>
+                            <li><strong>Resizable Window:</strong> Click the ⛶ button to expand the popup for better visibility.</li>
+                            <li><strong>Smart Tooltips:</strong> Hover over any message to read the full text without selecting it.</li>
+                            <li><strong>Live Search:</strong> Type in the search box to instantly filter messages and highlight matches.</li>
+                            <li><strong>Custom Dropdown:</strong> Click the format selector to see all export options in a styled menu.</li>
+                        </ul>
+                    </div>
+                </div>
+                 </div>
+                </div>
+
+
+
+        <div id="logsModal" class="modal-overlay hidden">
+            <div class="modal-content" style="max-width: 500px;">
+                <div class="modal-header">
+                    <h2>📜 Connection Logs</h2>
+                    <button id="closeLogsBtn" class="modal-close">&times;</button>
+                </div>
+                
+                <div class="modal-body">
+                    <div class="section">
+                        <h3>What This Does</h3>
+                        <p>Captures real-time API logs from the Lumo page, including:</p>
+                        <ul style="font-size: 12px; color: #cbd5e1; padding-left: 20px;">
+                            <li>Conversation IDs & Remote IDs</li>
+                            <li>Encryption status</li>
+                            <li>Token counts</li>
+                            <li>API endpoints & payloads</li>
+                            <li>Feature flags & user flags</li>
+                            <li>Lumo mode transitions</li>
+                        </ul>
+                    </div>
+
+                    <div class="section">
+                        <h3>How to Use</h3>
+                        <ol style="font-size: 12px; color: #cbd5e1; padding-left: 20px;">
+                            <li>Click <strong>Copy Script</strong> below</li>
+                            <li>Open Console on the Lumo page (<code>Ctrl+Shift+K</code>)</li>
+                            <li>Paste the script (<code>Ctrl+V</code>) and press <strong>Enter</strong></li>
+                            <li>A draggable, resizable log box will appear on the page</li>
+                            <li>Send a message to Lumo and watch the logs stream in</li>
+                        </ol>
+                    </div>
+
+                    <button id="copyLogScriptBtn" class="btn" style="width: 100%; background: linear-gradient(135deg, #6c63ff, #3f37c9); margin-top: 10px;">
+                        📋 Copy Script to Clipboard
+                    </button>
+                    <div id="copyStatus" style="text-align: center; margin-top: 8px; font-size: 12px; color: #51cf66; display: none;">✅ Copied!</div>
+                </div>
+            </div>
+        </div>
+
+
+</body>
+</html>
