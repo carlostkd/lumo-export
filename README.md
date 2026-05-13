@@ -28,27 +28,13 @@ All processing happens **locally in your browser**. Your data never leaves your 
 
 ## 📸 Screenshots
 
-<div style="float: left; width: 48%; margin: 1%;">
-  <img src="assets/lumo.png" width="300" alt="Frontpage" style="display: block; margin: 0 auto;">
-  <p style="text-align: center;"><b>Extension Frontpage</b></p>
-</div>
+| Extension Frontpage | Security Tab |
+|:---:|:---:|
+| ![Frontpage](assets/lumo.png) | ![Security](assets/lumo1.png) |
 
-<div style="float: left; width: 48%; margin: 1%;">
-  <img src="assets/lumo1.png" width="300" alt="Security" style="display: block; margin: 0 auto;">
-  <p style="text-align: center;"><b>Security Tab</b></p>
-</div>
-
-<div style="float: left; width: 48%; margin: 1%;">
-  <img src="assets/lumo2.png" width="300" alt="Help" style="display: block; margin: 0 auto;">
-  <p style="text-align: center;"><b>Help & Guide</b></p>
-</div>
-
-<div style="float: left; width: 48%; margin: 1%;">
-  <img src="assets/lumo3.png" width="300" alt="About" style="display: block; margin: 0 auto;">
-  <p style="text-align: center;"><b>About</b></p>
-</div>
-
-<div style="clear: both;"></div>
+| Help & Guide | About |
+|:---:|:---:|
+| ![Help](assets/lumo2.png) | ![About](assets/lumo3.png) |
 
 ## ✨ Features
 
