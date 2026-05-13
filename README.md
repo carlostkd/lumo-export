@@ -28,25 +28,27 @@ All processing happens **locally in your browser**. Your data never leaves your 
 
 ## 📸 Screenshots
 
-<div style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: center;">
-  <div style="text-align: center;">
-    <img src="assets/lumo.png" width="300" alt="Frontpage"><br>
-    <sub><b>Frontpage</b></sub>
-  </div>
-  <div style="text-align: center;">
-    <img src="assets/lumo1.png" width="300" alt="Security"><br>
-    <sub><b>Security</b></sub>
-  </div>
-  <div style="text-align: center;">
-    <img src="assets/lumo2.png" width="300" alt="Help"><br>
-    <sub><b>Help</b></sub>
-  </div>
-  <div style="text-align: center;">
-    <img src="assets/lumo3.png" width="300" alt="About"><br>
-    <sub><b>About</b></sub>
-  </div>
+<div style="float: left; width: 48%; margin: 1%;">
+  <img src="assets/lumo.png" width="300" alt="Frontpage" style="display: block; margin: 0 auto;">
+  <p style="text-align: center;"><b>Extension Frontpage</b></p>
 </div>
 
+<div style="float: left; width: 48%; margin: 1%;">
+  <img src="assets/lumo1.png" width="300" alt="Security" style="display: block; margin: 0 auto;">
+  <p style="text-align: center;"><b>Security Tab</b></p>
+</div>
+
+<div style="float: left; width: 48%; margin: 1%;">
+  <img src="assets/lumo2.png" width="300" alt="Help" style="display: block; margin: 0 auto;">
+  <p style="text-align: center;"><b>Help & Guide</b></p>
+</div>
+
+<div style="float: left; width: 48%; margin: 1%;">
+  <img src="assets/lumo3.png" width="300" alt="About" style="display: block; margin: 0 auto;">
+  <p style="text-align: center;"><b>About</b></p>
+</div>
+
+<div style="clear: both;"></div>
 
 ## ✨ Features
 
