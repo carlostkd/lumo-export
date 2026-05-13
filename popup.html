@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lumo Chat Export</title>
+    <!-- EXPECTED_HASH: a2cc047d63ae17a98b6122bb41a1f3ed392df2b2502c557d3edc1945d56d565f -->
     <link rel="stylesheet" href="popup.css">
 </head>
 <body>
@@ -19,6 +20,9 @@
                 </button>
                 <button id="securityBtn" class="btn btn-icon" title="Security & Integrity">
                     <span>🛡️</span>
+                </button>
+               <button id="helpBtn" class="btn btn-icon" title="Help & Guide">
+                    <span>❓</span>
                 </button>
                 <button id="settingsBtn" class="btn btn-icon" title="About & Donate">
                     <span>⚙️</span>
@@ -176,7 +180,7 @@
                 
                 <div class="modal-body">
                     <div class="section">
-                        <h3>🚀 What's New (v6.0)</h3>
+                        <h3>🚀 What's New (v6.2)</h3>
                         <ul class="release-notes">
                             <li><strong>Resizable Window:</strong> Expand to full size for deep analysis.</li>
                             <li><strong>Smart Tooltips:</strong> Hover to read full messages, click checkbox to select.</li>
@@ -188,6 +192,7 @@
                             <li><strong>Export code blocks</strong> only</li>
                             <li><strong>Edit & replace</strong> during the export</li>
                             <li><strong>Security & Integrity</strong> audits</li>
+                            <li><strong>Help Modal</strong> List all commands</li>
                         </ul>
                     </div>
 
@@ -225,6 +230,16 @@
                         <button id="runEnvCheckBtn" class="btn" style="width: 100%; margin-bottom: 15px;">Run Full Health Check</button>
                     </div>
 
+                  <div class="section">
+                        <h3>Code Integrity Check</h3>
+                        <div id="integrityStatus" style="padding: 10px; background: #16213e; border-radius: 6px; margin-bottom: 10px;">
+                            Ready to verify code integrity.
+                        </div>
+                        <button id="runIntegrityCheckBtn" class="btn" style="width: 100%;">Verify Code Integrity</button>
+                    </div>
+
+
+
                     <div class="section">
                         <h3>Installed Extensions Audit</h3>
                         <div id="extList" style="max-height: 200px; overflow-y: auto; background: #16213e; border-radius: 6px; padding: 10px; font-size: 12px;">
@@ -251,6 +266,18 @@
             </div>
         </div>
 
+
+        <div id="helpModal" class="modal-overlay hidden">
+            <div class="modal-content" style="max-width: 600px;">
+                <div class="modal-header">
+                    <h2>Help & Guide</h2>
+                    <button id="closeHelpBtn" class="modal-close">&times;</button>
+                </div>
+                
+                <div class="modal-body" id="helpBody">
+                </div>
+            </div>
+        </div>
 
 
 </body>

@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const deselectAllCodeBtn = document.getElementById('deselectAllCodeBtn');
     const exportCodeMdBtn = document.getElementById('exportCodeMdBtn');
     const exportCodeTxtBtn = document.getElementById('exportCodeTxtBtn');
-
+    //changed
     let extractedCodes = []; 
     
        
@@ -46,7 +46,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const injectStatusEl = document.getElementById('injectStatus');
     const runInjectTestBtn = document.getElementById('runInjectTestBtn');
     const permListEl = document.getElementById('permList');
-
+     
+    const integrityStatusEl = document.getElementById('integrityStatus');
+    const runIntegrityCheckBtn = document.getElementById('runIntegrityCheckBtn');
 
 
 
@@ -58,7 +60,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const caseSensitiveCheck = document.getElementById('caseSensitiveCheck');
     const replaceCountEl = document.getElementById('replaceCount');
 
-
+    const helpBtn = document.getElementById('helpBtn');
+    const helpModal = document.getElementById('helpModal');
+    const closeHelpBtn = document.getElementById('closeHelpBtn');
+    const helpBodyEl = document.getElementById('helpBody');
 
 
 
@@ -159,6 +164,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+    if (helpBtn && helpModal) {
+        helpBtn.addEventListener('click', () => {
+            helpModal.classList.remove('hidden');
+            helpModal.classList.add('active');
+            loadHelpContent();
+        });
+
+        closeHelpBtn.addEventListener('click', () => {
+            helpModal.classList.remove('active');
+            helpModal.classList.add('hidden');
+        });
+
+        helpModal.addEventListener('click', (e) => {
+            if (e.target === helpModal) {
+                helpModal.classList.remove('active');
+                helpModal.classList.add('hidden');
+            }
+        });
+    }
+
 
     const setStatus = (message, type = '') => {
         statusDiv.textContent = message;
@@ -223,39 +248,69 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    const applyFindReplace = (text) => {
+
+        const applyFindReplace = (text) => {
         if (!findReplaceCheck.checked) return text;
-        const find = findInput.value;
-        const replace = replaceInput.value;
-        if (!find) return text;
+        const findStr = findInput.value;
+        const replaceStr = replaceInput.value;
         
-        if (caseSensitiveCheck.checked) {
-            return text.split(find).join(replace);
-        } else {
-            const regex = new RegExp(find.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
-            return text.replace(regex, replace);
+        if (!findStr) return text;
+
+        const findList = findStr.split(',').map(s => s.trim()).filter(s => s.length > 0);
+        const replaceList = replaceStr.split(',').map(s => s.trim());
+
+        let result = text;
+
+        for (let i = 0; i < findList.length; i++) {
+            const find = findList[i];
+            const replace = i < replaceList.length ? replaceList[i] : '';
+
+            if (caseSensitiveCheck.checked) {
+                result = result.split(find).join(replace);
+            } else {
+                const regex = new RegExp(find.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+                result = result.replace(regex, replace);
+            }
         }
+
+        return result;
     };
 
-    const updateReplaceCount = () => {
+
+
+        const updateReplaceCount = () => {
         if (!findReplaceCheck.checked || !findInput.value) {
             replaceCountEl.textContent = '';
             return;
         }
-        const find = findInput.value;
-        let count = 0;
+        const findStr = findInput.value;
+        const findList = findStr.split(',').map(s => s.trim()).filter(s => s.length > 0);
+        
+        if (findList.length === 0) {
+            replaceCountEl.textContent = '';
+            return;
+        }
+
+        let totalCount = 0;
+
         allMessages.forEach(m => {
-            if (caseSensitiveCheck.checked) {
-                const parts = m.content.split(find);
-                count += parts.length - 1;
-            } else {
-                const regex = new RegExp(find.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
-                const matches = m.content.match(regex);
-                if (matches) count += matches.length;
-            }
+            const text = m.content;
+            findList.forEach(find => {
+                if (caseSensitiveCheck.checked) {
+                    const parts = text.split(find);
+                    totalCount += parts.length - 1;
+                } else {
+                    const regex = new RegExp(find.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+                    const matches = text.match(regex);
+                    if (matches) totalCount += matches.length;
+                }
+            });
         });
-        replaceCountEl.textContent = count + ' match' + (count !== 1 ? 'es' : '');
+
+        replaceCountEl.textContent = totalCount + ' match' + (totalCount !== 1 ? 'es' : '');
     };
+
+
 
     findInput.addEventListener('input', updateReplaceCount);
     replaceInput.addEventListener('input', updateReplaceCount);
@@ -1138,6 +1193,112 @@ document.addEventListener('DOMContentLoaded', () => {
     runEnvCheckBtn.addEventListener('click', runEnvCheck);
     scanExtBtn.addEventListener('click', scanExtensions);
     runInjectTestBtn.addEventListener('click', runInjectionTest);
+
+        runIntegrityCheckBtn.addEventListener('click', async () => {
+        integrityStatusEl.innerHTML = 'Verifying integrity...';
+        integrityStatusEl.style.color = '#ffd700';
+        
+        const result = await verifyIntegrity();
+        
+        if (result.status === 'valid') {
+                        integrityStatusEl.innerHTML = `✅ Code Integrity Verified.<br><span style="font-size:10px;word-break:break-all;color:#6c63ff;">Hash: ${result.hash}</span>`;
+            integrityStatusEl.style.color = '#51cf66';
+        } else if (result.status === 'invalid') {
+            integrityStatusEl.innerHTML = `❌ Code Tampering Detected!<br><span style="font-size:10px;word-break:break-all;color:#ff6b6b;">Expected: ${result.expected}<br>Actual: ${result.actual}</span>`;
+            integrityStatusEl.style.color = '#ff6b6b';
+
+        } else {
+            integrityStatusEl.innerHTML = `❌ Error: ${result.message}`;
+            integrityStatusEl.style.color = '#ff6b6b';
+        }
+    });
+
+
+
+
+
+    const verifyIntegrity = async () => {
+        const htmlUrl = browser.runtime.getURL('popup.html');
+        const jsUrl = browser.runtime.getURL('popup.js');
+        
+        try {
+            const htmlRes = await fetch(htmlUrl);
+            const htmlText = await htmlRes.text();
+            
+            const hashMatch = htmlText.match(/EXPECTED_HASH:\s*([a-f0-9]{64})/i);
+            if (!hashMatch) {
+                return { status: 'error', message: 'No hash found in popup.html. Add "EXPECTED_HASH: <hash>" in a comment.' };
+            }
+            const expectedHash = hashMatch[1].toLowerCase();
+            
+            const jsRes = await fetch(jsUrl);
+            const jsText = await jsRes.text();
+            
+            const encoder = new TextEncoder();
+            const data = encoder.encode(jsText);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const calculatedHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            
+            if (calculatedHash === expectedHash) {
+                return { status: 'valid', hash: calculatedHash };
+            } else {
+                return { status: 'invalid', expected: expectedHash, actual: calculatedHash };
+            }
+        } catch (e) {
+            return { status: 'error', message: e.message };
+        }
+    };
+
+
+
+    const loadHelpContent = () => {
+        const content = `
+            <div class="section">
+                <h3>📥 Exporting Chats</h3>
+                <p><strong>One-Click Export:</strong> Select messages (or use "Select All") and click <strong>Export Selected</strong>.</p>
+                <p><strong>Formats:</strong> Choose from JSON (structured), Plain Text, HTML (visual), or <strong>Markdown</strong> (preserves code blocks).</p>
+                <p><strong>Encryption:</strong> Check "Encrypt with Password" to secure your export with AES-256.</p>
+            </div>
+
+            <div class="section">
+                <h3>🔍 Finding & Replacing Text</h3>
+                <p>Enable <strong>Find & Replace</strong> to anonymize or modify content before export.</p>
+                <p><strong>Pro Tip:</strong> Enter multiple words separated by commas!</p>
+                <ul>
+                    <li><strong>Find:</strong> <code>Save,Home,John</code></li>
+                    <li><strong>Replace:</strong> <code>Downloaded,Work,Justin</code></li>
+                </ul>
+                <p>This will replace "Save"→"Downloaded", "Home"→"Work", and "John"→"Justin" simultaneously.</p>
+            </div>
+
+            <div class="section">
+                <h3>📦 Extracting Code Blocks</h3>
+                <p>Click <strong>📦 Extract Code Blocks</strong> to scan the entire chat for code snippets.</p>
+                <p>Preview all snippets, select specific ones, and export them as a single Markdown file or individual text files.</p>
+            </div>
+
+            <div class="section">
+                <h3>🛡️ Security & Integrity</h3>
+                <p><strong>Environment Health:</strong> Checks if your browser supports necessary APIs.</p>
+                <p><strong>Extension Audit:</strong> Scans for other extensions that might conflict or pose risks.</p>
+                <p><strong>Code Integrity:</strong> Verifies that the extension code hasn't been tampered with using SHA-256 hashing.</p>
+            </div>
+
+            <div class="section">
+                <h3>💡 Tips & Tricks</h3>
+                <ul>
+                    <li><strong>Resizable Window:</strong> Click the ⛶ button to expand the popup for better visibility.</li>
+                    <li><strong>Smart Tooltips:</strong> Hover over any message to read the full text without selecting it.</li>
+                    <li><strong>Live Search:</strong> Type in the search box to instantly filter messages and highlight matches.</li>
+                    <li><strong>Custom Dropdown:</strong> Click the format selector to see all export options in a styled menu.</li>
+                </ul>
+            </div>
+        `;
+        helpBodyEl.innerHTML = content;
+    };
+
+
 
   scanPage();
 
