@@ -7,13 +7,88 @@
     box.style.cssText = 'position:fixed;top:20px;right:20px;width:450px;height:550px;background:#1e1e2e;color:#0f0;font-size:11px;z-index:999999;border:1px solid #444;font-family:monospace;box-shadow:0 10px 30px rgba(0,0,0,0.5);display:flex;flex-direction:column;overflow:hidden;border-radius:8px;';
 
     var header = document.createElement('div');
-    header.style.cssText = 'background:#2d2d44;color:#fff;padding:10px 12px;font-weight:bold;cursor:move;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #444;border-radius:8px 8px 0 0;user-select:none;';
-    header.innerHTML = '<span>\uD83D\uDCDC Live Connection Logs</span><button id="__lumoCloseLogs" style="background:none;border:none;color:#ff6b6b;font-size:18px;cursor:pointer;line-height:1;padding:0 4px;">\u2715</button>';
+    header.style.cssText = 'background:#2d2d44;color:#fff;padding:10px 12px;cursor:move;display:flex;flex-direction:column;gap:8px;border-bottom:1px solid #444;border-radius:8px 8px 0 0;user-select:none;';
+
+    var headerRow = document.createElement('div');
+    headerRow.style.cssText = 'display:flex;justify-content:space-between;align-items:center;';
+    headerRow.innerHTML = '<span>\uD83D\uDCDC Live Connection Logs</span><button id="__lumoCloseLogs" style="background:none;border:none;color:#ff6b6b;font-size:18px;cursor:pointer;line-height:1;padding:0 4px;">\u2715</button>';
+
+    var filterRow = document.createElement('div');
+    filterRow.style.cssText = 'display:flex;align-items:center;gap:8px;position:relative;';
+
+    var filterLabel = document.createElement('span');
+    filterLabel.textContent = 'Filter:';
+    filterLabel.style.cssText = 'font-size:10px;color:#a0a0b0;';
+
+    var customSelect = document.createElement('div');
+    customSelect.id = '__lumoCustomSelect';
+    customSelect.style.cssText = 'flex:1;background:#16213e;border:1px solid #3a3a5a;border-radius:4px;cursor:pointer;position:relative;';
+    
+    var selectedText = document.createElement('div');
+    selectedText.id = '__lumoSelectedText';
+    selectedText.textContent = 'All Logs';
+    selectedText.style.cssText = 'padding:4px 8px;color:#e0e0e0;font-size:10px;display:flex;justify-content:space-between;align-items:center;';
+    selectedText.innerHTML += '<span style="color:#6c63ff;font-size:8px;">&#9662;</span>';
+
+    var optionsList = document.createElement('div');
+    optionsList.id = '__lumoOptionsList';
+    optionsList.style.cssText = 'position:absolute;top:100%;left:0;right:0;background:#16213e;border:1px solid #3a3a5a;border-top:none;border-radius:0 0 4px 4px;max-height:150px;overflow-y:auto;z-index:100;display:none;';
+    
+    var options = [
+        { value: 'all', text: 'All Logs' },
+        { value: 'message_meta', text: 'Message Metadata' },
+        { value: 'remote_id', text: 'Remote ID Mappings' },
+        { value: 'conversation', text: 'Conversation Updates' },
+        { value: 'api', text: 'API Calls' },
+        { value: 'errors', text: 'Errors Only' }
+    ];
+
+    var currentFilter = 'all';
+
+    options.forEach(function(opt) {
+        var optDiv = document.createElement('div');
+        optDiv.textContent = opt.text;
+        optDiv.style.cssText = 'padding:4px 8px;color:#e0e0e0;font-size:10px;cursor:pointer;transition:background 0.2s;';
+        optDiv.dataset.value = opt.value;
+        optDiv.addEventListener('mouseenter', function() { this.style.background = '#2a2a4a'; });
+        optDiv.addEventListener('mouseleave', function() { this.style.background = ''; });
+        optDiv.addEventListener('click', function() {
+            currentFilter = opt.value;
+            selectedText.innerHTML = opt.text + '<span style="color:#6c63ff;font-size:8px;">&#9662;</span>';
+            optionsList.style.display = 'none';
+            applyFilter();
+        });
+        optionsList.appendChild(optDiv);
+    });
+
+    customSelect.appendChild(selectedText);
+    customSelect.appendChild(optionsList);
+
+    customSelect.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var isVisible = optionsList.style.display === 'block';
+        optionsList.style.display = isVisible ? 'none' : 'block';
+    });
+
+    document.addEventListener('click', function() {
+        optionsList.style.display = 'none';
+    });
+
+    var countBadge = document.createElement('span');
+    countBadge.id = '__lumoLogCount';
+    countBadge.style.cssText = 'font-size:10px;color:#6c63ff;font-weight:bold;min-width:40px;text-align:right;';
+
+    filterRow.appendChild(filterLabel);
+    filterRow.appendChild(customSelect);
+    filterRow.appendChild(countBadge);
+
+    header.appendChild(headerRow);
+    header.appendChild(filterRow);
 
     var content = document.createElement('div');
     content.id = '__lumoLogsContent';
     content.style.cssText = 'flex:1;overflow-y:auto;padding:10px;white-space:pre-wrap;word-break:break-all;background:#121218;';
-    content.textContent = '\uD83D\uDFE2 LOG CAPTURE ACTIVE\nWaiting for logs...';
+    content.textContent = '';
 
     box.appendChild(header);
     box.appendChild(content);
@@ -47,6 +122,7 @@
     var startX, startY, initialLeft, initialTop;
 
     header.addEventListener('mousedown', function(e) {
+        if (e.target.closest('#__lumoCustomSelect')) return;
         isDragging = true;
         startX = e.clientX;
         startY = e.clientY;
@@ -84,8 +160,7 @@
         });
     });
 
-
-         document.addEventListener('mousemove', function(e) {
+    document.addEventListener('mousemove', function(e) {
         if (!isResizing) return;
         var dx = e.clientX - rStartX;
         var dy = e.clientY - rStartY;
@@ -105,8 +180,6 @@
         }
     });
 
-
-
     document.addEventListener('mouseup', function() {
         if (isResizing) {
             isResizing = false;
@@ -119,18 +192,65 @@
         window.__lumoModernLogsActive = false;
     });
 
-    var log = function(msg) {
+    var categorize = function(str) {
+        var s = str.toLowerCase();
+        if (s.indexOf('message') !== -1 && (s.indexOf('updated') !== -1 || s.indexOf('updating') !== -1 || s.indexOf('saving') !== -1 || s.indexOf('dirty') !== -1)) return 'message_meta';
+        if (s.indexOf('push message') !== -1 || s.indexOf('remote id') !== -1 || s.indexOf('mapping') !== -1 || s.indexOf('addremoteid') !== -1 || s.indexOf('addidmap') !== -1 || s.indexOf('waitformapping') !== -1) return 'remote_id';
+        if (s.indexOf('conversation') !== -1 && (s.indexOf('updated') !== -1 || s.indexOf('updating') !== -1 || s.indexOf('saving') !== -1 || s.indexOf('dirty') !== -1)) return 'conversation';
+        if (s.indexOf('lumo api') !== -1 || s.indexOf('httppost') !== -1 || s.indexOf('httpput') !== -1 || s.indexOf('http post') !== -1 || s.indexOf('http put') !== -1) return 'api';
+        if (s.indexOf('error') !== -1 || s.indexOf('fail') !== -1 || s.indexOf('exception') !== -1) return 'errors';
+        return 'other';
+    };
+
+    var updateCount = function() {
+        var visible = content.querySelectorAll('div[data-cat]').length;
+        var shown = 0;
+        if (currentFilter === 'all') {
+            shown = content.querySelectorAll('div[data-cat]:not([data-cat="system"])').length;
+        } else {
+            shown = content.querySelectorAll('div[data-cat="' + currentFilter + '"]').length;
+        }
+        countBadge.textContent = shown + '/' + visible;
+    };
+
+    var applyFilter = function() {
+        var lines = content.querySelectorAll('div[data-cat]');
+        lines.forEach(function(line) {
+            var cat = line.getAttribute('data-cat');
+            if (currentFilter === 'all' || cat === currentFilter) {
+                line.style.display = '';
+            } else {
+                line.style.display = 'none';
+            }
+        });
+        updateCount();
+    };
+
+    var log = function(msg, cat) {
         var line = document.createElement('div');
         line.textContent = msg;
         line.style.marginBottom = '3px';
         line.style.borderBottom = '1px solid #222';
         line.style.paddingBottom = '2px';
+        var category = cat || categorize(msg);
+        line.setAttribute('data-cat', category);
+        if (category === 'errors') line.style.color = '#ff6b6b';
+        else if (category === 'api') line.style.color = '#ffd43b';
+        else if (category === 'remote_id') line.style.color = '#51cf66';
+        else if (category === 'message_meta') line.style.color = '#74c0fc';
+        else if (category === 'conversation') line.style.color = '#da77f2';
+        if (currentFilter !== 'all' && category !== currentFilter) {
+            line.style.display = 'none';
+        }
         content.appendChild(line);
         content.scrollTop = content.scrollHeight;
+        updateCount();
     };
 
-    log('\uD83D\uDFE2 LOG CAPTURE ACTIVE');
-    log('Capturing ALL console output...');
+    log('\uD83D\uDFE2 LOG CAPTURE ACTIVE', 'system');
+    log('Capturing ALL console output...', 'system');
+
+
 
     var originalLog = console.log.bind(console);
     console.log = function() {
@@ -158,7 +278,7 @@
             if (typeof a === 'object') { try { return JSON.stringify(a); } catch(e) { return '[Object]'; } }
             return String(a);
         }).join(' ');
-        log(str);
+        log(str, 'errors');
         originalWarn.apply(console, arguments);
     };
 
@@ -168,7 +288,7 @@
             if (typeof a === 'object') { try { return JSON.stringify(a); } catch(e) { return '[Object]'; } }
             return String(a);
         }).join(' ');
-        log(str);
+        log(str, 'errors');
         originalError.apply(console, arguments);
     };
 })();
