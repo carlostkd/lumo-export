@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lumo Chat Export</title>
-    <!-- EXPECTED_HASH: 26e6a8314fd3e5f7ca0e911819778694856822cb30eb5453a8dd2b2e8daa0636 -->
+    <!-- EXPECTED_HASH: 5ea6ba1bf50fefb5fa2a60029eb32687d10e8230e84f600658a492a81c372dda -->
     <link rel="stylesheet" href="popup.css">
 </head>
 <body>
@@ -23,6 +23,9 @@
                 </button>
                <button id="helpBtn" class="btn btn-icon" title="Help & Guide">
                     <span>❓</span>
+                </button>
+                 <button id="smartReplyBtn" class="btn btn-icon" title="Smart Replies">
+                    <span>💡</span>
                 </button>
                 <button id="settingsBtn" class="btn btn-icon" title="About & Donate">
                     <span>⚙️</span>
@@ -319,6 +322,50 @@
                         </ul>
                     </div>
                 </div>
+               </div>
+               </div>
 
+        <div id="smartReplyModal" class="modal-overlay hidden">
+            <div class="modal-content" style="max-width: 500px;">
+                <div class="modal-header">
+                    <h2>💡 Smart Replies</h2>
+                    <button id="closeSmartReplyBtn" class="modal-close">&times;</button>
+                </div>
+                
+                <div class="modal-body">
+                    <div class="section">
+                        <p style="font-size: 12px; color: #a0a0b0; margin-bottom: 15px;">
+                            Based on the last messages, here are 3 suggested follow-ups. Click one to fill the input box on the Lumo page.
+                        </p>
+                        <div id="suggestionList" style="display: flex; flex-direction: column; gap: 10px; min-height: 120px;">
+                            <div class="loading-list">Analyzing chat context...</div>
+                        </div>
+                    </div>
+                                        <div class="section" style="margin-top: 15px; padding-top: 10px; border-top: 1px solid #2a2a4a;">
+                        <label class="checkbox-label" style="cursor: pointer;">
+                            <input type="checkbox" id="autoSendCheck">
+                            <span class="checkmark"></span>
+                            <span style="font-size: 12px; color: #a0a0b0; margin-left: 6px;">Auto-send after filling</span>
+                        </label>
+                    </div>
+
+                    <div class="section" style="border-top: 1px solid #2a2a4a; padding-top: 15px; display: flex; gap: 10px;">
+                        <button id="hardcodedBtn" class="btn" style="flex: 1; background: linear-gradient(135deg, #6c63ff, #3f37c9);">
+                            🤖 Smart
+                        </button>
+                        <button id="customBtn" class="btn" style="flex: 1; background: linear-gradient(135deg, #51cf66, #2b8a3e);">
+                            ⭐ Custom
+                        </button>
+                    </div>
+                       <div class="section" style="border-top: 1px solid #2a2a4a; padding-top: 15px; margin-top: 15px;">
+                        <div style="display: flex; gap: 6px;">
+                            <input type="text" id="customReplyInput" placeholder="Add custom reply..." style="flex: 1; padding: 6px 10px; border: 1px solid #3a3a5a; border-radius: 4px; background: #16213e; color: #e0e0e0; font-size: 11px; outline: none;">
+                            <button id="addCustomReplyBtn" class="btn" style="padding: 6px 12px; background: #6c63ff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px;">+</button>
+                        </div>
+                    </div>                       
+
+                </div>
+            </div>
+        </div>
 </body>
 </html>

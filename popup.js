@@ -32,7 +32,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const deselectAllCodeBtn = document.getElementById('deselectAllCodeBtn');
     const exportCodeMdBtn = document.getElementById('exportCodeMdBtn');
     const exportCodeTxtBtn = document.getElementById('exportCodeTxtBtn');
-    //changed
     let extractedCodes = []; 
     
        
@@ -64,6 +63,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const helpModal = document.getElementById('helpModal');
     const closeHelpBtn = document.getElementById('closeHelpBtn');
     const helpBodyEl = document.getElementById('helpBody');
+
+    const smartReplyBtn = document.getElementById('smartReplyBtn');
+    const smartReplyModal = document.getElementById('smartReplyModal');
+    const closeSmartReplyBtn = document.getElementById('closeSmartReplyBtn');
+    const suggestionListEl = document.getElementById('suggestionList');
+    const refreshSuggestionsBtn = document.getElementById('refreshSuggestionsBtn');
+    const autoSendCheck = document.getElementById('autoSendCheck');
+
+    const customReplyInput = document.getElementById('customReplyInput');
+    const addCustomReplyBtn = document.getElementById('addCustomReplyBtn');
+    const customRepliesListEl = document.getElementById('customRepliesList');
 
 
 
@@ -415,37 +425,76 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
 
+          const scanPage = async () => {
+        const clearElement = (el) => {
+            while (el.firstChild) {
+                el.removeChild(el.firstChild);
+            }
+        };
 
+        const createMessage = (text, color = '#a0a0b0') => {
+            const div = document.createElement('div');
+            div.className = 'loading-list';
+            div.style.color = color;
+            div.textContent = text;
+            return div;
+        };
 
-    const scanPage = async () => {
-        messageListEl.innerHTML = '<div class="loading-list">Scanning chat...</div>';
-        
+        clearElement(messageListEl);
+
+        messageListEl.appendChild(createMessage('Scanning chat...'));
+
         const script = `
             (function() {
                 const messages = [];
-                const allContainers = document.querySelectorAll('.assistant-msg-container, .user-msg-container');
-                allContainers.forEach(container => {
-                    const isUser = container.classList.contains('user-msg-container');
+                const selectors = [
+                    '.assistant-msg-container, .user-msg-container',
+                    '[class*="msg-container"]',
+                    '.message-container',
+                    'article',
+                    '[data-testid="message"]',
+                    '.chat-message'
+                ];
+                
+                let containers = [];
+                for (let sel of selectors) {
+                    const found = document.querySelectorAll(sel);
+                    if (found.length > 0) {
+                        containers = Array.from(found);
+                        break;
+                    }
+                }
+
+                if (containers.length === 0) {
+                    return [];
+                }
+
+                containers.forEach(container => {
+                    const isUser = container.classList.contains('user-msg-container') || 
+                                   container.classList.contains('user') ||
+                                   container.getAttribute('data-role') === 'user';
+                    
                     let content = '';
                     let rawHtml = '';
-                    if (isUser) {
-                        const textElement = container.querySelector('.whitespace-pre-line');
-                        if (textElement) {
-                            content = textElement.textContent.trim();
-                            rawHtml = textElement.innerHTML;
-                        }
-                    } else {
-                        const textContainer = container.querySelector('.progressive-markdown-content');
-                        if (textContainer) {
-                            const clone = textContainer.cloneNode(true);
-                            const thinkingPath = clone.querySelector('.thinking-path');
-                            if (thinkingPath) thinkingPath.remove();
-                            const actionToolbar = clone.querySelector('.action-toolbar');
-                            if (actionToolbar) actionToolbar.remove();
-                            content = clone.textContent.trim();
-                            rawHtml = clone.innerHTML;
+                    
+                    const textSelectors = [
+                        '.whitespace-pre-line',
+                        '.progressive-markdown-content',
+                        '[class*="content"]',
+                        'p',
+                        'div',
+                        '[class*="text"]'
+                    ];
+
+                    for (let tSel of textSelectors) {
+                        const textEl = container.querySelector(tSel);
+                        if (textEl && textEl.textContent.trim().length > 10) {
+                            content = textEl.textContent.trim();
+                            rawHtml = textEl.innerHTML;
+                            break;
                         }
                     }
+
                     if (content) {
                         messages.push({
                             role: isUser ? 'user' : 'assistant',
@@ -454,6 +503,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         });
                     }
                 });
+                
                 return messages;
             })();
         `;
@@ -465,38 +515,36 @@ document.addEventListener('DOMContentLoaded', () => {
             if (result && result[0]) {
                 allMessages = result[0];
                 renderList();
-                         } else {
-                messageListEl.textContent = '';
-                const noMsgDiv = document.createElement('div');
-                noMsgDiv.className = 'loading-list';
-                noMsgDiv.style.color = '#ff6b6b';
-                noMsgDiv.textContent = 'No messages found. Are you on a chat page?';
-                messageListEl.appendChild(noMsgDiv);
+            } else {
+                clearElement(messageListEl);
+                messageListEl.appendChild(createMessage('No messages found. Are you on a chat page?', '#ff6b6b'));
             }
-
-
-            } catch (err) {
-            messageListEl.textContent = '';
-            const errDiv = document.createElement('div');
-            errDiv.className = 'loading-list';
-            errDiv.style.color = '#ff6b6b';
-            errDiv.textContent = 'Error scanning page: ' + err.message;
+        } catch (err) {
+            clearElement(messageListEl);
+            const errDiv = createMessage('Error scanning page: ' + err.message, '#ff6b6b');
             messageListEl.appendChild(errDiv);
             console.error(err);
         }
-
-
-
     };
 
-    const renderList = () => {
-        messageListEl.innerHTML = '';
-        
+
+
+
+        const renderList = () => {
+        while (messageListEl.firstChild) {
+            messageListEl.removeChild(messageListEl.firstChild);
+        }
+
         if (allMessages.length === 0) {
-            messageListEl.innerHTML = '<div class="loading-list">No messages found.</div>';
+            const emptyMsg = document.createElement('div');
+            emptyMsg.className = 'loading-list';
+            emptyMsg.textContent = 'No messages found.';
+            messageListEl.appendChild(emptyMsg);
             updateCount();
             return;
         }
+
+
 
         const filterLower = currentFilter.toLowerCase();
         const tooltipsEnabled = tooltipCheck.checked;
@@ -544,7 +592,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (!matchesFilter) return;
                     clearTimeout(tooltipTimeout);
                     
-                    floatingTooltip.innerHTML = '';
+                   while (floatingTooltip.firstChild) {
+                   floatingTooltip.removeChild(floatingTooltip.firstChild);
+                    }
                     
                     const header = document.createElement('div');
                     header.className = 'tooltip-header';
@@ -1017,7 +1067,9 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const renderCodeList = () => {
-        codeListEl.innerHTML = '';
+            while (codeListEl.firstChild) {
+            codeListEl.removeChild(codeListEl.firstChild);
+        }
         codeCountEl.textContent = extractedCodes.length;
         
         extractedCodes.forEach((item, idx) => {
@@ -1151,7 +1203,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     const runEnvCheck = async () => {
-        envStatusEl.innerHTML = 'Running checks...';
+        const clearElement = (el) => {
+            while (el.firstChild) {
+                el.removeChild(el.firstChild);
+            }
+        };
+
+        const createText = (text) => {
+            const span = document.createElement('span');
+            span.textContent = text;
+            return span;
+        };
+
+        clearElement(envStatusEl);
+        const loadingMsg = createText('Running checks...');
+        envStatusEl.appendChild(loadingMsg);
         envStatusEl.style.color = '#ffd700';
         
         const checks = [];
@@ -1180,11 +1246,11 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) {
             checks.push('❌ Manifest: Error');
         }
-                envStatusEl.textContent = '';
+
+        clearElement(envStatusEl);
 
         checks.forEach((check, index) => {
-            const span = document.createElement('span');
-            span.textContent = check;
+            const span = createText(check);
             envStatusEl.appendChild(span);
 
             if (index < checks.length - 1) {
@@ -1209,16 +1275,34 @@ document.addEventListener('DOMContentLoaded', () => {
             envStatusEl.style.color = '#ff6b6b';
         }
         envStatusEl.appendChild(summary);
-
-
     };
 
 
 
+
+
+
+
+
     const scanExtensions = async () => {
-        extListEl.innerHTML = 'Scanning...';
+        const clearElement = (el) => {
+            while (el.firstChild) {
+                el.removeChild(el.firstChild);
+            }
+        };
+
+        const createText = (text, color = null) => {
+            const span = document.createElement('span');
+            span.textContent = text;
+            if (color) span.style.color = color;
+            return span;
+        };
+
+        clearElement(extListEl);
+        const loadingMsg = createText('Scanning...');
+        extListEl.appendChild(loadingMsg);
         extListEl.style.color = '#ffd700';
-        
+
         try {
             const extensions = await browser.management.getAll();
             const suspicious = [];
@@ -1228,7 +1312,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const hasAllUrls = ext.permissions && ext.permissions.includes('<all_urls>');
                 const name = ext.name.toLowerCase();
                 const isSuspicious = hasAllUrls || name.includes('inject') || name.includes('scraper') || name.includes('monitor');
-                
+
                 if (isSuspicious) {
                   suspicious.push({ name: ext.name, label: 'Broad permissions' });
                 } else {
@@ -1236,26 +1320,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-                        extListEl.textContent = '';
+            clearElement(extListEl);
             extListEl.style.color = '#e0e0e0';
 
             if (suspicious.length > 0) {
-                const title = document.createElement('strong');
-                title.textContent = 'Potential Conflicts:';
+                const title = createText('Potential Conflicts:');
+                title.style.fontWeight = 'bold';
                 extListEl.appendChild(title);
 
                 const br = document.createElement('br');
                 extListEl.appendChild(br);
 
                 suspicious.forEach((item, index) => {
-                    const span = document.createElement('span');
-                    span.style.color = '#ff6b6b';
-                    span.textContent = '⚠️ ' + item.name;
-                    extListEl.appendChild(span);
+                    const warnSpan = createText('⚠️ ' + item.name, '#ff6b6b');
+                    extListEl.appendChild(warnSpan);
 
-                    const text = document.createElement('span');
-                    text.textContent = ' (' + item.label + ')';
-                    extListEl.appendChild(text);
+                    const labelSpan = createText(' (' + item.label + ')');
+                    extListEl.appendChild(labelSpan);
 
                     if (index < suspicious.length - 1) {
                         const brLine = document.createElement('br');
@@ -1269,16 +1350,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 extListEl.appendChild(br3);
             }
 
-            const safeTitle = document.createElement('strong');
-            safeTitle.textContent = 'Safe Extensions (' + safe.length + '):';
+            const safeTitle = createText('Safe Extensions (' + safe.length + '):');
+            safeTitle.style.fontWeight = 'bold';
             extListEl.appendChild(safeTitle);
 
             const br4 = document.createElement('br');
             extListEl.appendChild(br4);
 
             safe.forEach((item, index) => {
-                const span = document.createElement('span');
-                span.textContent = item;
+                const span = createText(item);
                 extListEl.appendChild(span);
 
                 if (index < safe.length - 1) {
@@ -1287,117 +1367,133 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
         } catch (e) {
-            extListEl.textContent = 'Error scanning extensions: ' + e.message;
-            extListEl.style.color = '#ff6b6b';
+            clearElement(extListEl);
+            const errSpan = createText('Error scanning extensions: ' + e.message, '#ff6b6b');
+            extListEl.appendChild(errSpan);
         }
     };
 
 
-    const runInjectionTest = async () => {
-        injectStatusEl.innerHTML = 'Testing injection...';
-        injectStatusEl.style.color = '#ffd700';
-        
 
-              try {
+
+    const runInjectionTest = async () => {
+        const clearElement = (el) => {
+            while (el.firstChild) {
+                el.removeChild(el.firstChild);
+            }
+        };
+
+        const createText = (text, color = null) => {
+            const span = document.createElement('span');
+            span.textContent = text;
+            if (color) span.style.color = color;
+            return span;
+        };
+
+        clearElement(injectStatusEl);
+        const loadingMsg = createText('Testing injection...');
+        injectStatusEl.appendChild(loadingMsg);
+        injectStatusEl.style.color = '#ffd700';
+
+        try {
             const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
             const result = await browser.tabs.executeScript(tab.id, { code: '1+1;' });
-            
-            injectStatusEl.textContent = '';
-            
+
+            clearElement(injectStatusEl);
+
             if (result && result[0] === 2) {
-                const successSpan = document.createElement('span');
-                successSpan.textContent = '✅ Injection Successful. No blocking detected.';
-                successSpan.style.color = '#51cf66';
+                const successSpan = createText('✅ Injection Successful. No blocking detected.', '#51cf66');
                 injectStatusEl.appendChild(successSpan);
                 injectStatusEl.style.color = '#51cf66';
             } else {
-                const failSpan = document.createElement('span');
-                failSpan.textContent = '❌ Unexpected result from injection.';
-                failSpan.style.color = '#ff6b6b';
+                const failSpan = createText('❌ Unexpected result from injection.', '#ff6b6b');
                 injectStatusEl.appendChild(failSpan);
                 injectStatusEl.style.color = '#ff6b6b';
             }
         } catch (e) {
-            injectStatusEl.textContent = '';
-            const errorSpan = document.createElement('span');
-            errorSpan.textContent = '❌ Injection Failed: ' + e.message;
-            errorSpan.style.color = '#ff6b6b';
+            clearElement(injectStatusEl);
+            const errorSpan = createText('❌ Injection Failed: ' + e.message, '#ff6b6b');
             injectStatusEl.appendChild(errorSpan);
             injectStatusEl.style.color = '#ff6b6b';
         }
-
-
     };
+
+
 
 
     runEnvCheckBtn.addEventListener('click', runEnvCheck);
     scanExtBtn.addEventListener('click', scanExtensions);
     runInjectTestBtn.addEventListener('click', runInjectionTest);
 
-        runIntegrityCheckBtn.addEventListener('click', async () => {
-        integrityStatusEl.innerHTML = 'Verifying integrity...';
+    runIntegrityCheckBtn.addEventListener('click', async () => {
+        const clearElement = (el) => {
+            while (el.firstChild) {
+                el.removeChild(el.firstChild);
+            }
+        };
+
+        const createText = (text, color = null) => {
+            const span = document.createElement('span');
+            span.textContent = text;
+            if (color) span.style.color = color;
+            return span;
+        };
+
+        clearElement(integrityStatusEl);
+        const loadingMsg = createText('Verifying integrity...');
+        integrityStatusEl.appendChild(loadingMsg);
         integrityStatusEl.style.color = '#ffd700';
-        
+
         const result = await verifyIntegrity();
-        
-               if (result.status === 'valid') {
-            integrityStatusEl.textContent = '';
+
+        clearElement(integrityStatusEl);
+
+        if (result.status === 'valid') {
             integrityStatusEl.style.color = '#51cf66';
 
-            const successText = document.createElement('span');
-            successText.textContent = '✅ Code Integrity Verified.';
+            const successText = createText('✅ Code Integrity Verified.');
             integrityStatusEl.appendChild(successText);
 
             const br1 = document.createElement('br');
             integrityStatusEl.appendChild(br1);
 
-            const hashLabel = document.createElement('span');
+            const hashLabel = createText('Hash: ' + result.hash);
             hashLabel.style.fontSize = '10px';
             hashLabel.style.wordBreak = 'break-all';
             hashLabel.style.color = '#6c63ff';
-            hashLabel.textContent = 'Hash: ' + result.hash;
             integrityStatusEl.appendChild(hashLabel);
 
         } else if (result.status === 'invalid') {
-            integrityStatusEl.textContent = '';
             integrityStatusEl.style.color = '#ff6b6b';
 
-            const failText = document.createElement('span');
-            failText.textContent = '❌ Code Tampering Detected!';
+            const failText = createText('❌ Code Tampering Detected!');
             integrityStatusEl.appendChild(failText);
 
             const br1 = document.createElement('br');
             integrityStatusEl.appendChild(br1);
 
-            const expectedLabel = document.createElement('span');
+            const expectedLabel = createText('Expected: ' + result.expected);
             expectedLabel.style.fontSize = '10px';
             expectedLabel.style.wordBreak = 'break-all';
             expectedLabel.style.color = '#ff6b6b';
-            expectedLabel.textContent = 'Expected: ' + result.expected;
             integrityStatusEl.appendChild(expectedLabel);
 
             const br2 = document.createElement('br');
             integrityStatusEl.appendChild(br2);
 
-            const actualLabel = document.createElement('span');
+            const actualLabel = createText('Actual: ' + result.actual);
             actualLabel.style.fontSize = '10px';
             actualLabel.style.wordBreak = 'break-all';
             actualLabel.style.color = '#ff6b6b';
-            actualLabel.textContent = 'Actual: ' + result.actual;
             integrityStatusEl.appendChild(actualLabel);
 
         } else {
-            integrityStatusEl.textContent = '';
             integrityStatusEl.style.color = '#ff6b6b';
 
-            const errorText = document.createElement('span');
-            errorText.textContent = '❌ Error: ' + result.message;
+            const errorText = createText('❌ Error: ' + result.message);
             integrityStatusEl.appendChild(errorText);
         }
-
-
     });
-
 
 
 
@@ -1437,8 +1533,320 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+        const loadCustomReplies = () => {
+        const saved = localStorage.getItem('lumoCustomReplies');
+        const replies = saved ? JSON.parse(saved) : [];
+        
+        if (replies.length === 0) {
+            while (suggestionListEl.firstChild) {
+                suggestionListEl.removeChild(suggestionListEl.firstChild);
+            }
+            const emptyMsg = document.createElement('div');
+            emptyMsg.className = 'loading-list';
+            emptyMsg.style.color = '#a0a0b0';
+            emptyMsg.textContent = 'No custom replies saved yet.';
+            suggestionListEl.appendChild(emptyMsg);
+            return;
+        }
+
+        renderSuggestions(replies);
+    };
 
 
-  scanPage();
+
+        const saveCustomReply = (text) => {
+        const saved = localStorage.getItem('lumoCustomReplies');
+        const replies = saved ? JSON.parse(saved) : [];
+        if (!replies.includes(text)) {
+            replies.push(text);
+            localStorage.setItem('lumoCustomReplies', JSON.stringify(replies));
+        }
+    };
+
+
+    const deleteCustomReply = (text) => {
+        const saved = localStorage.getItem('lumoCustomReplies');
+        const replies = saved ? JSON.parse(saved) : [];
+        const filtered = replies.filter(r => r !== text);
+        localStorage.setItem('lumoCustomReplies', JSON.stringify(filtered));
+        loadCustomReplies();
+    };
+
+    const createSuggestions = (messages) => {
+        const lastMsg = messages[messages.length - 1];
+        const text = lastMsg.text.toLowerCase();
+        const pool = [];
+
+        if (lastMsg.role === 'assistant') {
+            if (text.includes('code') || text.includes('function') || text.includes('script')) {
+                pool.push("Can you explain how this code works?");
+                pool.push("Can you optimize this code for performance?");
+                pool.push("Are there any security vulnerabilities in this code?");
+                pool.push("Can you rewrite this in a different language?");
+                pool.push("What design patterns apply here?");
+                pool.push("Can you add error handling to this?");
+            } else if (text.includes('error') || text.includes('bug') || text.includes('issue')) {
+                pool.push("How can I fix this error?");
+                pool.push("Can you provide a step-by-step debugging guide?");
+                pool.push("What are common causes for this issue?");
+                pool.push("Is this a known issue with a workaround?");
+                pool.push("Can you write a test to prevent this?");
+            } else if (text.includes('list') || text.includes('steps') || text.includes('guide')) {
+                pool.push("Can you summarize the key points?");
+                pool.push("Can you give me a concrete example?");
+                pool.push("What should I do next?");
+                pool.push("Which step is the most important?");
+                pool.push("Can you simplify this process?");
+            } else {
+                pool.push("Can you elaborate on that?");
+                pool.push("Can you provide more details?");
+                pool.push("What are the pros and cons of this approach?");
+                pool.push("Can you give me a real-world example?");
+                pool.push("How would you improve this?");
+                pool.push("What's the alternative to this?");
+                pool.push("Can you break this down further?");
+            }
+        } else {
+            pool.push("Can you help me with this?");
+            pool.push("What do you think about this?");
+            pool.push("Can you explain this concept?");
+            pool.push("Can you review my approach?");
+            pool.push("What am I missing here?");
+        }
+
+        const shuffled = pool.sort(() => Math.random() - 0.5);
+        return shuffled.slice(0, 3);
+    };
+
+         const renderSuggestions = (suggestions) => {
+        while (suggestionListEl.firstChild) {
+            suggestionListEl.removeChild(suggestionListEl.firstChild);
+        }
+        
+        if (!suggestions || suggestions.length === 0) {
+            const emptyMsg = document.createElement('div');
+            emptyMsg.className = 'loading-list';
+            emptyMsg.style.color = '#a0a0b0';
+            emptyMsg.textContent = 'No suggestions found.';
+            suggestionListEl.appendChild(emptyMsg);
+            return;
+        }
+
+        suggestions.forEach(suggestion => {
+            const chip = document.createElement('div');
+            chip.style.cssText = 'padding: 10px 15px; background: #16213e; border: 1px solid #3a3a5a; border-radius: 6px; cursor: pointer; color: #e0e0e0; font-size: 12px; transition: background 0.2s; display: flex; justify-content: space-between; align-items: center;';
+            
+            const textSpan = document.createElement('span');
+            textSpan.textContent = suggestion; // Safe: no HTML parsing
+            textSpan.style.flex = '1';
+            textSpan.style.marginRight = '10px';
+            
+            const deleteBtn = document.createElement('span');
+            deleteBtn.textContent = '🗑️'; // Safe: plain text
+            deleteBtn.style.cssText = 'cursor: pointer; font-size: 16px; padding: 0 5px; opacity: 0.7; transition: opacity 0.2s;';
+            deleteBtn.title = 'Delete this reply';
+            
+            chip.addEventListener('mouseenter', () => chip.style.background = '#2a2a4a');
+            chip.addEventListener('mouseleave', () => chip.style.background = '#16213e');
+            
+            deleteBtn.addEventListener('mouseenter', () => deleteBtn.style.opacity = '1');
+            deleteBtn.addEventListener('mouseleave', () => deleteBtn.style.opacity = '0.7');
+            
+            chip.addEventListener('click', (e) => {
+                if (e.target === deleteBtn) return;
+                fillInputBox(suggestion);
+            });
+            
+            deleteBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                deleteCustomReply(suggestion);
+            });
+
+            chip.appendChild(textSpan);
+            chip.appendChild(deleteBtn);
+            suggestionListEl.appendChild(chip);
+        });
+    };
+
+    const fillInputBox = async (text) => {
+        const script = `(function(){
+            const input = document.querySelector('textarea[placeholder*="Type a message"], textarea[placeholder*="Ask"], textarea');
+            if (input) {
+                input.value = "${text.replace(/"/g, '\\"')}";
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+                input.dispatchEvent(new Event('change', { bubbles: true }));
+                return true;
+            }
+            return false;
+        })();`;
+
+        try {
+            const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
+            const result = await browser.tabs.executeScript(tab.id, { code: script });
+
+            if (result && result[0] === true) {
+                const autoSend = autoSendCheck.checked;
+
+                if (autoSend) {
+                    const sendScript = `(function(){
+                        const input = document.querySelector('textarea[placeholder*="Type a message"], textarea[placeholder*="Ask"], textarea');
+                        if (input) {
+                            const imgBtn = document.querySelector('img[src*="lumo-arrow"]');
+                            if (imgBtn) { imgBtn.click(); return true; }
+                            const imgBtnAlt = document.querySelector('img[alt*="Start generating"]');
+                            if (imgBtnAlt) { imgBtnAlt.click(); return true; }
+                            const form = input.closest('form');
+                            const btn = form ? form.querySelector('button[type="submit"]') : null;
+                            if (btn) { btn.click(); return true; }
+                            const allBtns = document.querySelectorAll('button');
+                            for (let b of allBtns) {
+                                if ((b.getAttribute('aria-label') === 'Send') || b.textContent.trim() === 'Send') { b.click(); return true; }
+                            }
+                        }
+                        return false;
+                    })();`;
+                    await browser.tabs.executeScript(tab.id, { code: sendScript });
+                }
+
+                const toast = document.createElement('div');
+                toast.textContent = autoSend ? '✅ Sent!' : '✅ Filled! Switch to Lumo tab.';
+                toast.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#2b8a3e;color:#fff;padding:10px 20px;border-radius:6px;font-size:12px;z-index:99999;box-shadow:0 4px 12px rgba(0,0,0,0.4);opacity:0;transition:opacity 0.3s;';
+                document.body.appendChild(toast);
+                setTimeout(() => toast.style.opacity = '1', 10);
+                setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 2500);
+
+                smartReplyModal.classList.remove('active');
+                smartReplyModal.classList.add('hidden');
+            } else {
+                const toast = document.createElement('div');
+                toast.textContent = '❌ Could not find input box.';
+                toast.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#e03131;color:#fff;padding:10px 20px;border-radius:6px;font-size:12px;z-index:99999;box-shadow:0 4px 12px rgba(0,0,0,0.4);opacity:0;transition:opacity 0.3s;';
+                document.body.appendChild(toast);
+                setTimeout(() => toast.style.opacity = '1', 10);
+                setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 2500);
+            }
+        } catch (err) {
+            const toast = document.createElement('div');
+            toast.textContent = '❌ Error: ' + err.message;
+            toast.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#e03131;color:#fff;padding:10px 20px;border-radius:6px;font-size:12px;z-index:99999;box-shadow:0 4px 12px rgba(0,0,0,0.4);opacity:0;transition:opacity 0.3s;';
+            document.body.appendChild(toast);
+            setTimeout(() => toast.style.opacity = '1', 10);
+            setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 2500);
+        }
+    };
+
+        const generateSmartSuggestions = async () => {
+        const createMessage = (text, color) => {
+            const div = document.createElement('div');
+            div.className = 'loading-list';
+            div.style.color = color;
+            div.textContent = text;
+            return div;
+        };
+
+        while (suggestionListEl.firstChild) {
+            suggestionListEl.removeChild(suggestionListEl.firstChild);
+        }
+
+        const script = `(function(){const messages=[];const selectors=['.assistant-msg-container, .user-msg-container','[class*="msg-container"]','.message-container','article'];let containers=[];for(let sel of selectors){const found=document.querySelectorAll(sel);if(found.length>0){containers=Array.from(found);break;}}if(containers.length===0){return{error:'No message containers found'}}const lastFew=containers.slice(-5);lastFew.forEach(container=>{let text='';let role='unknown';if(container.classList.contains('user-msg-container')||container.classList.contains('user')){role='user'}else if(container.classList.contains('assistant-msg-container')||container.classList.contains('assistant')||container.classList.contains('bot')){role='assistant'}const textSelectors=['.whitespace-pre-line','.progressive-markdown-content','[class*="content"]','p','div'];for(let tSel of textSelectors){const textEl=container.querySelector(tSel);if(textEl&&textEl.textContent.trim().length>10){text=textEl.textContent.trim();break}}if(text){messages.push({role:role,text:text.substring(0,300)})}});return{messages:messages}})();`;
+        
+        try {
+            const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
+            if (!tab.url.includes('lumo.proton.me')) {
+                suggestionListEl.appendChild(createMessage('Please open a Lumo chat page first.', '#ff6b6b'));
+                return;
+            }
+            const result = await browser.tabs.executeScript(tab.id, { code: script });
+            if (result && result[0]) {
+                const data = result[0];
+                if (data.error) {
+                    suggestionListEl.appendChild(createMessage(data.error, '#ff6b6b'));
+                    return;
+                }
+                if (!data.messages || data.messages.length === 0) {
+                    suggestionListEl.appendChild(createMessage('No messages found.', '#ff6b6b'));
+                    return;
+                }
+                const suggestions = createSuggestions(data.messages);
+                renderSuggestions(suggestions);
+            } else {
+                suggestionListEl.appendChild(createMessage('Failed to execute script.', '#ff6b6b'));
+            }
+        } catch (err) {
+            console.error('Smart Reply Error:', err);
+            suggestionListEl.appendChild(createMessage('Error: ' + err.message, '#ff6b6b'));
+        }
+    };
+
+
+
+         if (smartReplyBtn && smartReplyModal) {
+        smartReplyBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            smartReplyModal.classList.remove('hidden');
+            smartReplyModal.classList.add('active');
+            generateSmartSuggestions(); 
+        });
+
+        if (closeSmartReplyBtn) {
+            closeSmartReplyBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                smartReplyModal.classList.remove('active');
+                smartReplyModal.classList.add('hidden');
+            });
+        }
+
+        smartReplyModal.addEventListener('click', (e) => {
+            if (e.target === smartReplyModal) {
+                e.stopPropagation();
+                smartReplyModal.classList.remove('active');
+                smartReplyModal.classList.add('hidden');
+            }
+        });
+
+        
+        const hardcodedBtn = document.getElementById('hardcodedBtn');
+        if (hardcodedBtn) {
+            hardcodedBtn.addEventListener('click', () => {
+                generateSmartSuggestions();
+            });
+        }
+
+
+        const customBtn = document.getElementById('customBtn');
+        if (customBtn) {
+        customBtn.addEventListener('click', () => {
+            loadCustomReplies();
+        });
+        } else {
+        console.error('Custom button NOT found! Check HTML ID.');
+        }
+
+
+        if (autoSendCheck) {
+            autoSendCheck.addEventListener('change', () => {});
+        }
+
+        if (customReplyInput && addCustomReplyBtn) {
+            addCustomReplyBtn.addEventListener('click', () => {
+                const text = customReplyInput.value.trim();
+                if (text) {
+                    saveCustomReply(text);
+                    customReplyInput.value = '';
+                    loadCustomReplies(); // Switch view to Custom to show new reply
+                }
+            });
+
+            customReplyInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    addCustomReplyBtn.click();
+                }
+            });
+        }
+    }
+
+
+
+    scanPage();
 
 });
