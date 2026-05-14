@@ -56,7 +56,7 @@ All processing happens **locally in your browser**. Your data never leaves your 
 | 📦 **Code Block Extractor** | Scan the entire chat, preview all code snippets, and export them as a single Markdown file or individual text files. |
 | 🔀 **Find & Replace** | Anonymize or modify content before export (e.g., swap "client A" with "Project X") with optional case sensitivity. |
 | 🛡️ **Security & Integrity** | Built-in health checks, extension conflict detector, injection tester, and permissions overview for complete transparency. |
-
+| 💡 **Smart & Custom Replies** | Access a curated library of predefined technical prompts or create your own saved responses. Includes an **Auto-Send** toggle for rapid workflows. *(Note: Custom replies are stored locally in `localStorage` )* |
 ---
 
 ## 📥 Installation
