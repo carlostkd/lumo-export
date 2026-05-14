@@ -920,6 +920,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     mimeType = 'text/markdown';
                     extension = 'md';
                     filename = `lumo-chat-export-${timestamp}.md`;
+                    } else if (format === '5') {
+                    const jsonString = JSON.stringify({
+                        exportedAt: new Date().toISOString(),
+                        totalMessages: filteredMessages.length,
+                        messages: filteredMessages
+                    });
+                    const base64Content = btoa(unescape(encodeURIComponent(jsonString)));
+                    content = base64Content;
+                    mimeType = 'text/plain';
+                    extension = 'txt';
+                    filename = `lumo-chat-base64-${timestamp}.${extension}`;
                 } else {
                     content = JSON.stringify({
                         exportedAt: new Date().toISOString(),
@@ -930,6 +941,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     extension = 'json';
                     filename = `lumo-chat-export-${timestamp}.${extension}`;
                 }
+
+
             }
 
             const blob = new Blob([content], { type: mimeType });
