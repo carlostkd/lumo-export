@@ -1100,7 +1100,63 @@ document.addEventListener('DOMContentLoaded', () => {
             
             row.appendChild(checkbox);
             row.appendChild(content);
-            
+ 
+                        if (tooltipCheck.checked) {
+                row.addEventListener('mouseenter', () => {
+                    clearTimeout(tooltipTimeout);
+                    floatingTooltip.innerHTML = '';
+                    const header = document.createElement('div');
+                    header.className = 'tooltip-header';
+                    header.textContent = `Snippet ${idx + 1}: ${item.lang.toUpperCase()}`;
+                    floatingTooltip.appendChild(header);
+                    const tooltipContentDiv = document.createElement('div');
+                    tooltipContentDiv.className = 'tooltip-content';
+                    tooltipContentDiv.style.maxHeight = '300px';
+                    tooltipContentDiv.style.overflowY = 'auto';
+                    tooltipContentDiv.style.whiteSpace = 'pre-wrap';
+                    tooltipContentDiv.style.fontFamily = 'monospace';
+                    tooltipContentDiv.style.fontSize = '11px';
+                    tooltipContentDiv.textContent = item.code;
+                    floatingTooltip.appendChild(tooltipContentDiv);
+                    header.addEventListener('mousedown', (e) => {
+                        isDraggingTooltip = true;
+                        currentTooltipHeader = header;
+                        dragStartX = e.clientX;
+                        dragStartY = e.clientY;
+                        dragInitialLeft = floatingTooltip.offsetLeft;
+                        dragInitialTop = floatingTooltip.offsetTop;
+                        floatingTooltip.style.cursor = 'grabbing';
+                        e.preventDefault();
+                    });
+                    const rect = row.getBoundingClientRect();
+                    let top = rect.bottom + 5;
+                    let left = rect.left + 30;
+                    if (left + 340 > window.innerWidth) left = window.innerWidth - 350;
+                    if (left < 5) left = 5;
+                    if (top + 400 > window.innerHeight) top = rect.top - 410;
+                    if (top < 5) top = 5;
+                    floatingTooltip.style.top = `${top}px`;
+                    floatingTooltip.style.left = `${left}px`;
+                    floatingTooltip.classList.add('visible');
+                });
+                row.addEventListener('mouseleave', () => {
+                    clearTimeout(tooltipTimeout);
+                    tooltipTimeout = setTimeout(() => {
+                        if (!isMouseOverTooltip) {
+                            floatingTooltip.classList.remove('visible');
+                            if (isDraggingTooltip) {
+                                isDraggingTooltip = false;
+                                currentTooltipHeader = null;
+                                floatingTooltip.style.cursor = 'grab';
+                            }
+                        }
+                    }, 200);
+                });
+            }
+
+
+
+
             codeListEl.appendChild(row);
         });
     };

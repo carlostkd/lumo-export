@@ -410,7 +410,7 @@ select:focus {
 .floating-tooltip {
     display: none;
     position: fixed;
-    z-index: 9999;
+    z-index: 10001;
     width: 340px;
     max-height: 400px;
     background: #0f172a;
@@ -751,7 +751,7 @@ body.full-window .container {
 .floating-tooltip {
     display: none;
     position: fixed;
-    z-index: 9999;
+    z-index: 99999;
     width: 340px;
     max-height: 400px;
     background: #0f172a;

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lumo Chat Export</title>
-    <!-- EXPECTED_HASH: 5ea6ba1bf50fefb5fa2a60029eb32687d10e8230e84f600658a492a81c372dda -->
+    <!-- EXPECTED_HASH: 417670108609c769e4d210c2c7a934488e6d5b1fbdf236cb959db49c9c1219c1 -->
     <link rel="stylesheet" href="popup.css">
 </head>
 <body>
@@ -117,8 +117,7 @@
                 <div class="loading-list">Scanning chat...</div>
             </div>
             
-            <div id="floatingTooltip" class="floating-tooltip"></div>
-            
+            <div id="floatingTooltip" class="floating-tooltip"></div> 
             <div class="list-footer">
                 <span id="selectedCount">0 messages selected</span>
             </div>
@@ -317,7 +316,6 @@
                         <p><strong>Extension Audit:</strong> Scans for other extensions that might conflict or pose risks.</p>
                         <p><strong>Code Integrity:</strong> Verifies that the extension code hasn't been tampered with using SHA-256 hashing.</p>
                     </div>
-
                     <div class="section">
                         <h3>💡 Tips & Tricks</h3>
                         <ul>
@@ -325,8 +323,11 @@
                             <li><strong>Smart Tooltips:</strong> Hover over any message to read the full text without selecting it.</li>
                             <li><strong>Live Search:</strong> Type in the search box to instantly filter messages and highlight matches.</li>
                             <li><strong>Custom Dropdown:</strong> Click the format selector to see all export options in a styled menu.</li>
+                            <li><strong>Smart & Custom Replies:</strong> Click the 💡 button to open the reply panel. Use <strong>🤖 Smart</strong> for predefined coding prompts or <strong>⭐ Custom</strong> to load your saved templates. Enable <strong>Auto-Send</strong> to instantly submit replies without clicking "Send".</li>
                         </ul>
                     </div>
+
+
                 </div>
                </div>
                </div>
@@ -373,5 +374,7 @@
                 </div>
             </div>
         </div>
+
+
 </body>
 </html>
