@@ -12,6 +12,11 @@
 
 </div>
 
+HASH VERIFICATION V.6.4
+
+Hash: 417670108609c769e4d210c2c7a934488e6d5b1fbdf236cb959db49c9c1219c1
+
+
 ---
 
 ## 🎯 About
