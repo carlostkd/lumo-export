@@ -4,7 +4,7 @@
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Firefox](https://img.shields.io/badge/Firefox-140+-orange.svg)
-![Status](https://img.shields.io/badge/status-submission_pending-yellow.svg)
+
 
 **Export your Lumo chat history to JSON, TXT, or HTML with a single click.**
 
@@ -64,7 +64,7 @@ All processing happens **locally in your browser**. Your data never leaves your 
 ### Option 1 — From AMO (Recommended)
 
 1. Open Firefox 140 or later
-2. Visit the [AMO Store Page](https://addons.mozilla.org/en-US/firefox/addon/lumo-chat-export//) (still waiting for validation)
+2. Visit the [AMO Store Page](https://addons.mozilla.org/en-US/firefox/addon/lumo-chat-export/) 
 3. Click **Add to Firefox**
 4. Confirm the installation
 
