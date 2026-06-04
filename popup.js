@@ -499,7 +499,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         messages.push({
                             role: isUser ? 'user' : 'assistant',
                             content: content,
-                            rawHtml: rawHtml
+                            
                         });
                     }
                 });
