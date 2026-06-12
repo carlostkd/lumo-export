@@ -4,17 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lumo Chat Export</title>
-    <!-- EXPECTED_HASH: 042db5f27417fcb71dc6f96e6f16cf484ba1bb8443455a48fc6a4f95a2ccd927 -->
+    <!-- EXPECTED_HASH: b836de1aec7c933c4ab5b0de256a004bcc709b3b7aa72b77912f502e253202d1 -->
     <link rel="stylesheet" href="popup.css">
 </head>
 <body>
     <div class="container">
                    <div class="header">
-            <div style="display: flex; align-items: center; gap: 12px;">
+            <div class="header-top">
                 <img src="icon.png" alt="Icon" class="header-icon">
                 <h1>Lumo Export</h1>
             </div>
-            <div style="display: flex; gap: 8px;">
+            <div class="header-buttons">
                 <button id="resizeBtn" class="btn btn-icon" title="Expand Window">
                     <span id="resizeIcon">⛶</span>
                 </button>
@@ -31,7 +31,6 @@
                     <span>⚙️</span>
                 </button>
             </div>
-
         </div>       
         
                       <div class="form-group">
@@ -184,8 +183,10 @@
                 
                 <div class="modal-body">
                     <div class="section">
-                        <h3>🚀 What's New (v6.2)</h3>
+                        <h3>🚀 What's New (v7.0)</h3>
                         <ul class="release-notes">
+                            <li><strong>New Desig:</strong> Modern Design and colors.</li>
+                            <li><strong>Small bug fixs</strong> to keep the cat meaow.</li>
                             <li><strong>Resizable Window:</strong> Expand to full size for deep analysis.</li>
                             <li><strong>Smart Tooltips:</strong> Hover to read full messages, click checkbox to select.</li>
                             <li><strong>Live Stats:</strong> Word count and file size estimation.</li>

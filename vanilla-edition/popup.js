@@ -109,19 +109,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const toggleResize = () => {
         isLarge = !isLarge;
         
+        document.body.style.transition = 'none';
+        
         if (isLarge) {
             document.body.classList.add('large-mode');
             resizeIcon.textContent = '✕'; 
             resizeBtn.title = "Restore Small Size";
-            
-            window.resizeTo(LARGE_WIDTH, LARGE_HEIGHT);
         } else {
             document.body.classList.remove('large-mode');
             resizeIcon.textContent = '⛶'; 
             resizeBtn.title = "Expand Window";
-            
-            window.resizeTo(SMALL_WIDTH, SMALL_HEIGHT);
         }
+        
+        requestAnimationFrame(() => {
+            window.resizeTo(isLarge ? LARGE_WIDTH : SMALL_WIDTH, isLarge ? LARGE_HEIGHT : SMALL_HEIGHT);
+            requestAnimationFrame(() => {
+                document.body.style.transition = '';
+            });
+        });
     };
 
     if (resizeBtn) {
