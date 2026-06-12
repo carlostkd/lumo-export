@@ -14,7 +14,7 @@
 
 HASH VERIFICATION V.6.4
 
-Hash: 417670108609c769e4d210c2c7a934488e6d5b1fbdf236cb959db49c9c1219c1
+Hash: 9e8d27c137de97acaf3177b5406be3e6ce7c78554f5c5643d5581e117efaac82
 
 Note: Hash verification is performed exclusively on the JavaScript file, as it represents the sole attack vector in this implementation.
 ```
