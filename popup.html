@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lumo Chat Export</title>
-    <!-- EXPECTED_HASH: 9e8d27c137de97acaf3177b5406be3e6ce7c78554f5c5643d5581e117efaac82 -->
+    <!-- EXPECTED_HASH: c10bf3c9144e7e3a4cd742520440f44f6266c220100fb7d77825524f3ea77fa8 -->
     <link rel="stylesheet" href="popup.css">
 </head>
 <body>
@@ -97,8 +97,7 @@
             </div>
         </div>
 
-
-             
+              
         <div class="form-group">
             <div class="list-header">
                 <div class="search-wrapper">
@@ -126,16 +125,19 @@
             <span class="btn-text">Export Selected</span>
             <div class="loader"></div>
            </button>
-           <button id="extractCodeBtn" class="btn" style="background: linear-gradient(135deg, #51cf66, #2b8a3e); margin-top: 8px;">
-            <span class="btn-text">📦 Extract Code Blocks</span>
-            <div class="loader"></div>
-           </button>
+            <button id="extractCodeBtn" class="btn" style="background: linear-gradient(135deg, #51cf66, #2b8a3e); margin-top: 8px;">
+             <span class="btn-text">📦 Extract Code Blocks</span>
+             <div class="loader"></div>
+            </button>
+            <button id="extractImageBtn" class="btn" style="background: linear-gradient(135deg, #f06595, #d6336c); margin-top: 8px;">
+             <span class="btn-text">🖼️ Extract Images</span>
+             <div class="loader"></div>
+            </button>
 
 
 
 
-        <div id="exportStats" class="export-stats"></div>
-
+         <div id="exportStats" class="export-stats"></div>
         <div id="status" class="status"></div>
 
 
@@ -173,6 +175,35 @@
             </div>
         </div>
 
+        <div id="imageExtractModal" class="modal-overlay hidden">
+            <div class="modal-content" style="max-width: 750px;">
+                <div class="modal-header">
+                    <h2>Extract Images (<span id="imageCount">0</span> found)</h2>
+                    <button id="closeImageModalBtn" class="modal-close">&times;</button>
+                </div>
+                
+                <div class="modal-body">
+                    <div class="section">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <button id="selectAllImageBtn" class="text-btn">Select All</button>
+                            <button id="deselectAllImageBtn" class="text-btn">Deselect All</button>
+                        </div>
+                        <div id="imageList" style="max-height: 400px; overflow-y: auto; border: 1px solid #2a2a4a; border-radius: 8px; background: #16213e; display: flex; flex-wrap: wrap; gap: 10px; padding: 10px;">
+                            <!-- Images will be injected here -->
+                        </div>
+                    </div>
+
+                    <div class="section" style="border-top: 1px solid #2a2a4a; padding-top: 15px;">
+                        <label style="display: block; margin-bottom: 8px; font-size: 12px; color: #a0a0b0;">Export Format:</label>
+                        <div style="display: flex; gap: 10px;">
+                            <button id="exportImageHtmlBtn" class="btn" style="flex: 1; background: linear-gradient(135deg, #6c63ff, #3f37c9);">HTML Gallery (.html)</button>
+                            <button id="exportImageZipBtn" class="btn" style="flex: 1; background: linear-gradient(135deg, #f06595, #d6336c);">Download Images</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div id="aboutModal" class="modal-overlay hidden">
             <div class="modal-content">
                 <div class="modal-header">
@@ -182,10 +213,9 @@
                 
                 <div class="modal-body">
                     <div class="section">
-                     <h3> What's New (v7.0)</h3>
+                     <h3> What's New (v7.1)</h3>
                         <ul class="release-notes">
-                            <li><strong>New Desig:</strong> Modern Design and colors.</li>
-                            <li><strong>Small bug fixs</strong> to keep the cat meaow.</li>
+                            <li><strong>Image Export:</strong> Extract generated images as HTML gallery or download individually.</li>
                             <li><strong>Resizable Window:</strong> Expand to full size for deep analysis.</li>
                             <li><strong>Smart Tooltips:</strong> Hover to read full messages, click checkbox to select.</li>
                             <li><strong>Live Stats:</strong> Word count and file size estimation.</li>
@@ -194,6 +224,7 @@
                             <li><strong>Markdown</strong> Export</li>
                             <li><strong>Draggable</strong> Tooltips</li>
                             <li><strong>Export code blocks</strong> only</li>
+                            <li><strong>Export images</strong> only</li>
                             <li><strong>Edit & replace</strong> during the export</li>
                             <li><strong>Security & Integrity</strong> audits</li>
                             <li><strong>Help Modal</strong> List all commands</li>
