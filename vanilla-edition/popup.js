@@ -443,6 +443,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const isUser = container.classList.contains('user-msg-container');
                     let content = '';
                     let rawHtml = '';
+                    let images = [];
                     if (isUser) {
                         const textElement = container.querySelector('.whitespace-pre-line');
                         if (textElement) {
@@ -461,11 +462,27 @@ document.addEventListener('DOMContentLoaded', () => {
                             rawHtml = clone.innerHTML;
                         }
                     }
-                    if (content) {
+                    const imgEls = container.querySelectorAll('.inline-image-card img, img[alt="Generated image"]');
+                    imgEls.forEach(function(img) {
+                        try {
+                            var canvas = document.createElement('canvas');
+                            canvas.width = img.naturalWidth;
+                            canvas.height = img.naturalHeight;
+                            if (canvas.width > 0 && canvas.height > 0) {
+                                canvas.getContext('2d').drawImage(img, 0, 0);
+                                images.push({
+                                    src: canvas.toDataURL('image/png'),
+                                    alt: img.alt || 'Generated image'
+                                });
+                            }
+                        } catch (e) {}
+                    });
+                    if (content || images.length > 0) {
                         messages.push({
                             role: isUser ? 'user' : 'assistant',
                             content: content,
-                            rawHtml: rawHtml
+                            rawHtml: rawHtml,
+                            images: images
                         });
                     }
                 });
@@ -547,7 +564,12 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const textSpan = document.createElement('div');
             textSpan.className = 'list-item-content-text';
-            textSpan.textContent = msg.content.substring(0, 60) + (msg.content.length > 60 ? '...' : '');
+            let displayText = msg.content ? msg.content.substring(0, 60) + (msg.content.length > 60 ? '...' : '') : '';
+            if (msg.images && msg.images.length > 0) {
+                const imgCount = msg.images.length;
+                displayText = displayText ? displayText + ' \uD83D\uDCF7' : '\uD83D\uDCF7 ' + (imgCount > 1 ? imgCount + ' images' : 'image');
+            }
+            textSpan.textContent = displayText || '(empty)';
             
             rowContentDiv.appendChild(roleSpan);
             rowContentDiv.appendChild(textSpan);
@@ -587,6 +609,19 @@ document.addEventListener('DOMContentLoaded', () => {
                         tooltipContentDiv.textContent = msg.content;
                     }
                     floatingTooltip.appendChild(tooltipContentDiv);
+
+                    if (msg.images && msg.images.length > 0) {
+                        const imgContainer = document.createElement('div');
+                        imgContainer.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;padding-top:8px;border-top:1px solid #3a3a5a';
+                        msg.images.forEach(img => {
+                            const imgEl = document.createElement('img');
+                            imgEl.src = img.src;
+                            imgEl.alt = img.alt;
+                            imgEl.style.cssText = 'max-width:100%;border-radius:6px;max-height:300px;object-fit:contain';
+                            imgContainer.appendChild(imgEl);
+                        });
+                        floatingTooltip.appendChild(imgContainer);
+                    }
 
                     header.addEventListener('mousedown', (e) => {
                         isDraggingTooltip = true;
@@ -902,15 +937,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
 
                 if (format === '2') {
-                    content = filteredMessages.map(m => `[${m.role.toUpperCase()}]:\n${m.content}\n`).join('\n---\n');
+                    content = filteredMessages.map(m => {
+                        let txt = `[${m.role.toUpperCase()}]:\n${m.content}\n`;
+                        if (m.images && m.images.length > 0) {
+                            txt += `[Images: ${m.images.map(img => img.alt).join(', ')}]\n`;
+                        }
+                        return txt;
+                    }).join('\n---\n');
                     mimeType = 'text/plain';
                     extension = 'txt';
                     filename = `lumo-chat-export-${timestamp}.${extension}`;
                 } else if (format === '3') {
-                    let html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Lumo Chat Export</title><style>body{font-family:sans-serif;max-width:800px;margin:2rem auto;padding:0 1rem;line-height:1.6;background:#fafafa}.message{margin-bottom:1.5rem;padding:1rem;border-radius:8px}.user{background:#e3f2fd}.assistant{background:#f5f5f5}.role{font-weight:bold;margin-bottom:0.5rem;color:#555;text-transform:uppercase;font-size:12px}.content{white-space:pre-wrap}</style></head><body><h1>Lumo Chat Export - ${timestamp}</h1>`;
+                    let html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Lumo Chat Export</title><style>body{font-family:sans-serif;max-width:800px;margin:2rem auto;padding:0 1rem;line-height:1.6;background:#fafafa}.message{margin-bottom:1.5rem;padding:1rem;border-radius:8px}.user{background:#e3f2fd}.assistant{background:#f5f5f5}.role{font-weight:bold;margin-bottom:0.5rem;color:#555;text-transform:uppercase;font-size:12px}.content{white-space:pre-wrap}.images{display:flex;flex-wrap:wrap;gap:12px;margin-top:12px}.images img{max-width:100%;border-radius:8px;max-height:400px;object-fit:contain}</style></head><body><h1>Lumo Chat Export - ${timestamp}</h1>`;
                     filteredMessages.forEach(m => {
                         const safeContent = m.content.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-                        html += `<div class="message ${m.role}"><div class="role">${m.role.toUpperCase()}</div><div class="content">${safeContent}</div></div>\n`;
+                        html += `<div class="message ${m.role}"><div class="role">${m.role.toUpperCase()}</div><div class="content">${safeContent}</div>`;
+                        if (m.images && m.images.length > 0) {
+                            html += '<div class="images">';
+                            m.images.forEach(img => {
+                                const safeAlt = img.alt.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                                html += `<img src="${img.src}" alt="${safeAlt}" />`;
+                            });
+                            html += '</div>';
+                        }
+                        html += `</div>\n`;
                     });
                     html += '</body></html>';
                     content = html;
@@ -928,6 +978,11 @@ document.addEventListener('DOMContentLoaded', () => {
                             md += `**${roleTitle}:**\n${htmlToMarkdown(m.rawHtml)}\n\n`;
                         } else {
                             md += `**${roleTitle}:**\n${m.content}\n\n`;
+                        }
+                        if (m.images && m.images.length > 0) {
+                            m.images.forEach(img => {
+                                md += `![${img.alt}](${img.src})\n\n`;
+                            });
                         }
                     });
                     
@@ -1500,6 +1555,191 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 
+
+    // Image Extraction Feature
+    const extractImageBtn = document.getElementById('extractImageBtn');
+    const imageExtractModal = document.getElementById('imageExtractModal');
+    const closeImageModalBtn = document.getElementById('closeImageModalBtn');
+    const imageListEl = document.getElementById('imageList');
+    const imageCountEl = document.getElementById('imageCount');
+    const selectAllImageBtn = document.getElementById('selectAllImageBtn');
+    const deselectAllImageBtn = document.getElementById('deselectAllImageBtn');
+    const exportImageHtmlBtn = document.getElementById('exportImageHtmlBtn');
+    const exportImageZipBtn = document.getElementById('exportImageZipBtn');
+    let extractedImages = [];
+
+    const dataUrlToBlob = (dataUrl) => {
+        const parts = dataUrl.split(',');
+        const mime = parts[0].match(/:(.*?);/)[1];
+        const bytes = atob(parts[1]);
+        const arr = new Uint8Array(bytes.length);
+        for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
+        return new Blob([arr], { type: mime });
+    };
+
+    const getImageExtension = (dataUrl) => {
+        const match = dataUrl.match(/^data:image\/(\w+);/);
+        return match ? match[1] : 'png';
+    };
+
+    const scanImages = async () => {
+        extractImageBtn.disabled = true;
+        extractImageBtn.classList.add('loading');
+        const script = `
+            (function() {
+                const images = [];
+                const imgEls = document.querySelectorAll('.inline-image-card img, img[alt="Generated image"]');
+                imgEls.forEach(function(img) {
+                    try {
+                        var canvas = document.createElement('canvas');
+                        canvas.width = img.naturalWidth;
+                        canvas.height = img.naturalHeight;
+                        if (canvas.width > 0 && canvas.height > 0) {
+                            canvas.getContext('2d').drawImage(img, 0, 0);
+                            images.push({
+                                src: canvas.toDataURL('image/png'),
+                                alt: img.alt || 'Generated image'
+                            });
+                        }
+                    } catch (e) {}
+                });
+                return images;
+            })();
+        `;
+        try {
+            const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
+            const result = await browser.tabs.executeScript(tab.id, { code: script });
+            if (result && result[0]) {
+                extractedImages = result[0];
+                renderImageList();
+                imageExtractModal.classList.remove('hidden');
+                imageExtractModal.classList.add('active');
+            } else {
+                setStatus('No images found.', 'error');
+            }
+        } catch (err) {
+            setStatus('Error scanning images: ' + err.message, 'error');
+        } finally {
+            extractImageBtn.disabled = false;
+            extractImageBtn.classList.remove('loading');
+        }
+    };
+
+    const renderImageList = () => {
+        while (imageListEl.firstChild) {
+            imageListEl.removeChild(imageListEl.firstChild);
+        }
+        imageCountEl.textContent = extractedImages.length;
+        if (extractedImages.length === 0) {
+            const emptyMsg = document.createElement('div');
+            emptyMsg.textContent = 'No images found.';
+            emptyMsg.style.cssText = 'color: #a0a0b0; padding: 20px; text-align: center; width: 100%;';
+            imageListEl.appendChild(emptyMsg);
+            return;
+        }
+        extractedImages.forEach((item, idx) => {
+            const card = document.createElement('div');
+            card.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px;border:1px solid #2a2a4a;border-radius:8px;background:#1a1a3e;cursor:pointer;transition:border-color 0.2s;width:calc(50% - 10px);min-width:150px;position:relative;';
+            card.dataset.index = idx;
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.checked = true;
+            checkbox.dataset.index = idx;
+            checkbox.style.cssText = 'position:absolute;top:8px;left:8px;z-index:2;width:18px;height:18px;accent-color:#f06595;cursor:pointer;';
+            const img = document.createElement('img');
+            img.src = item.src;
+            img.alt = item.alt;
+            img.style.cssText = 'width:100%;max-height:180px;object-fit:contain;border-radius:4px;background:#0d0d2b;';
+            const label = document.createElement('div');
+            label.style.cssText = 'font-size:11px;color:#a0a0b0;text-align:center;word-break:break-all;';
+            label.textContent = item.alt;
+            card.appendChild(checkbox);
+            card.appendChild(img);
+            card.appendChild(label);
+            card.addEventListener('click', (e) => {
+                if (e.target === checkbox) return;
+                checkbox.checked = !checkbox.checked;
+            });
+            checkbox.addEventListener('change', (e) => e.stopPropagation());
+            imageListEl.appendChild(card);
+        });
+    };
+
+    const getSelectedImages = () => {
+        return extractedImages.filter((_, i) => {
+            const cb = imageListEl.querySelectorAll('input[type="checkbox"]')[i];
+            return cb && cb.checked;
+        });
+    };
+
+    extractImageBtn.addEventListener('click', scanImages);
+
+    closeImageModalBtn.addEventListener('click', () => {
+        imageExtractModal.classList.remove('active');
+        imageExtractModal.classList.add('hidden');
+    });
+
+    imageExtractModal.addEventListener('click', (e) => {
+        if (e.target === imageExtractModal) {
+            imageExtractModal.classList.remove('active');
+            imageExtractModal.classList.add('hidden');
+        }
+    });
+
+    selectAllImageBtn.addEventListener('click', () => {
+        imageListEl.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = true);
+    });
+
+    deselectAllImageBtn.addEventListener('click', () => {
+        imageListEl.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+    });
+
+    exportImageHtmlBtn.addEventListener('click', () => {
+        const selected = getSelectedImages();
+        if (selected.length === 0) { setStatus('Select at least one image.', 'error'); return; }
+        let html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Extracted Images</title><style>body{font-family:sans-serif;max-width:1000px;margin:2rem auto;padding:0 1rem;background:#1a1a2e;color:#e0e0e0}.gallery{display:flex;flex-wrap:wrap;gap:20px;justify-content:center}.card{background:#16213e;border-radius:12px;padding:12px;border:1px solid #2a2a4a;max-width:400px}.card img{width:100%;border-radius:8px;display:block}.card .label{font-size:12px;color:#a0a0b0;margin-top:8px;text-align:center}h1{text-align:center;color:#f06595}</style></head><body><h1>Extracted Images</h1><div class="gallery">';
+        selected.forEach(img => {
+            const safeAlt = img.alt.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            html += '<div class="card"><img src="' + img.src + '" alt="' + safeAlt + '" /><div class="label">' + safeAlt + '</div></div>';
+        });
+        html += '</div></body></html>';
+        const blob = new Blob([html], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'lumo-images-' + new Date().toISOString().slice(0, 10) + '.html';
+        a.click();
+        URL.revokeObjectURL(url);
+        setStatus('Exported ' + selected.length + ' images!', 'success');
+        imageExtractModal.classList.remove('active');
+        imageExtractModal.classList.add('hidden');
+    });
+
+    exportImageZipBtn.addEventListener('click', () => {
+        const selected = getSelectedImages();
+        if (selected.length === 0) { setStatus('Select at least one image.', 'error'); return; }
+        let done = 0;
+        selected.forEach((img, i) => {
+            setTimeout(() => {
+                const ext = getImageExtension(img.src);
+                const blob = dataUrlToBlob(img.src);
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'lumo-image-' + (i + 1) + '.' + ext;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                done++;
+                if (done === selected.length) {
+                    setStatus('Downloaded ' + selected.length + ' images!', 'success');
+                    imageExtractModal.classList.remove('active');
+                    imageExtractModal.classList.add('hidden');
+                }
+            }, i * 300);
+        });
+    });
 
   scanPage();
 
