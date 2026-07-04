@@ -1,3 +1,19 @@
+HASH VERIFICATION V.7.2
+
+New: Export memory
+
+Hash: 6bb67da94bc981362015c488dc8e7bf3d9288e7fe733f702a398d0dacce293a8
+
+Note: Hash verification is performed exclusively on the 
+JavaScript file, as it represents the sole attack vector in this 
+implementation.
+
+```
+sha256sum popup.js 
+```
+
+
+
 # Lumo Chat Export | Proton Drive Bridge
 
 Exports your Lumo chat history and images directly to **Proton Drive** via the `proton-drive` CLI.
