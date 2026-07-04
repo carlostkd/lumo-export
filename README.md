@@ -1,5 +1,9 @@
 #  Lumo Chat Export
 
+### Added Proton Drive Direct export , refere to the folder drive_export (vanilla only)
+
+### The Drive export requires a lot of work and time to send it to Firefox AMO, feel free to submit yourself or use as is , it just works. 
+
 <div align="center">
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
