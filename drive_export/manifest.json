@@ -1,0 +1,28 @@
+{
+  "manifest_version": 2,
+  "name": "Lumo Chat Export",
+  "version": "7.1",
+  "description": "Instantly export your Lumo chat history to JSON, TXT, or HTML. Privacy-focused and secure.",
+  "permissions": [
+    "activeTab",
+    "downloads",
+    "management",
+    "nativeMessaging"
+  ],
+  "browser_action": {
+    "default_popup": "popup.html",
+    "default_title": "Export Lumo Chat"
+  },
+  "icons": {
+    "48": "icon.png"
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "lumo-export@carlostkd.ch",
+      "strict_min_version": "142.0",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
+    }
+  }
+}

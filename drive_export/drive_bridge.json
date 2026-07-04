@@ -1,0 +1,9 @@
+{
+  "name": "proton_drive_bridge",
+  "description": "Bridges Lumo Chat Export extension to Proton Drive CLI",
+  "path": "/path/to/drive_bridge.py",
+  "type": "stdio",
+  "allowed_extensions": [
+    "lumo-export@carlostkd.ch"
+  ]
+}
