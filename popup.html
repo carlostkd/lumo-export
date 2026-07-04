@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lumo Chat Export</title>
-    <!-- EXPECTED_HASH: c10bf3c9144e7e3a4cd742520440f44f6266c220100fb7d77825524f3ea77fa8 -->
+    <!-- EXPECTED_HASH: 5a4fe0aab83fdaa3e46c9b043f8a44dc35e83128a00d7a322cd75de3cba71ac8 -->
     <link rel="stylesheet" href="popup.css">
 </head>
 <body>
@@ -129,10 +129,14 @@
              <span class="btn-text">📦 Extract Code Blocks</span>
              <div class="loader"></div>
             </button>
-            <button id="extractImageBtn" class="btn" style="background: linear-gradient(135deg, #f06595, #d6336c); margin-top: 8px;">
+             <button id="extractImageBtn" class="btn" style="background: linear-gradient(135deg, #f06595, #d6336c); margin-top: 8px;">
              <span class="btn-text">🖼️ Extract Images</span>
              <div class="loader"></div>
-            </button>
+             </button>
+             <button id="exportMemoryBtn" class="btn" style="background: linear-gradient(135deg, #ffd43b, #fab005); margin-top: 8px;">
+             <span class="btn-text">🧠 Export Memory</span>
+             <div class="loader"></div>
+             </button>
 
 
 
@@ -213,8 +217,9 @@
                 
                 <div class="modal-body">
                     <div class="section">
-                     <h3> What's New (v7.1)</h3>
+                     <h3> What's New (v7.2)</h3>
                         <ul class="release-notes">
+                            <li><strong>Memory Export:</strong> Export saved memories (Lumo brain) as structured JSON automatically opens Settings &gt; Memory panel.</li>
                             <li><strong>Image Export:</strong> Extract generated images as HTML gallery or download individually.</li>
                             <li><strong>Resizable Window:</strong> Expand to full size for deep analysis.</li>
                             <li><strong>Smart Tooltips:</strong> Hover to read full messages, click checkbox to select.</li>
