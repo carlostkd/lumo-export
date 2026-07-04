@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lumo Chat Export</title>
-    <!-- EXPECTED_HASH: a59eee364c1c26f3bf44450d3c91fca77706a578b0f972b0b88b4588ddee38fc -->
+    <!-- EXPECTED_HASH: 8c425aeecf688fe106fcecde8e43f482cae1e03b58e6cae9c8a828a438ecf24d -->
     <link rel="stylesheet" href="popup.css">
 </head>
 <body>
@@ -131,10 +131,14 @@
              <span class="btn-text">📦 Extract Code Blocks</span>
              <div class="loader"></div>
             </button>
-            <button id="extractImageBtn" class="btn" style="background: linear-gradient(135deg, #f06595, #d6336c); margin-top: 8px;">
+             <button id="extractImageBtn" class="btn" style="background: linear-gradient(135deg, #f06595, #d6336c); margin-top: 8px;">
              <span class="btn-text">🖼️ Extract Images</span>
              <div class="loader"></div>
-            </button>
+             </button>
+             <button id="exportMemoryBtn" class="btn" style="background: linear-gradient(135deg, #ffd43b, #fab005); margin-top: 8px;">
+             <span class="btn-text">🧠 Export Memory</span>
+             <div class="loader"></div>
+             </button>
 
 
 
@@ -215,8 +219,9 @@
                 
                 <div class="modal-body">
                     <div class="section">
-                        <h3>🚀 What's New (v7.0)</h3>
+                        <h3>🚀 What's New (v7.2)</h3>
                         <ul class="release-notes">
+                            <li><strong>Memory Export:</strong> Export saved memories (Lumo brain) as structured JSON — automatically opens Settings &gt; Memory panel.</li>
                             <li><strong>New Desig:</strong> Modern Design and colors.</li>
                             <li><strong>Small bug fixs</strong> to keep the cat meaow.</li>
                             <li><strong>Resizable Window:</strong> Expand to full size for deep analysis.</li>
