@@ -1,5 +1,19 @@
 # Lumo Chat Export  |  Vanilla Edition 🛠️
 
+HASH VERIFICATION V.7.2
+
+New: Export memory
+
+Hash: 8c425aeecf688fe106fcecde8e43f482cae1e03b58e6cae9c8a828a438ecf24d
+
+Note: Hash verification is performed exclusively on the 
+JavaScript file, as it represents the sole attack vector in this 
+implementation.
+
+```
+sha256sum popup.js 
+```
+
 > **Developer Tool for Deep Diagnostics & Real-Time Logging**
 
 The **Vanilla Edition** is a lightweight, manual-injection tool designed specifically for developers and power users who need to inspect the internal API traffic of the Lumo interface. Unlike the standard extension, this version provides a **live, interactive console overlay** directly on the webpage.
