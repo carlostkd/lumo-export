@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lumo Chat Export</title>
-    <!-- EXPECTED_HASH: 2cace8978da6da91c388d8855c2f0fcdd439744c708217a4fc6692b78f865397 -->
+    <!-- EXPECTED_HASH: 6bb67da94bc981362015c488dc8e7bf3d9288e7fe733f702a398d0dacce293a8 -->
     <link rel="stylesheet" href="popup.css">
 </head>
 <body>
@@ -133,10 +133,14 @@
              <span class="btn-text">🖼️ Extract Images</span>
              <div class="loader"></div>
             </button>
-            <button id="driveBtn" class="btn" style="background: linear-gradient(135deg, #1a73e8, #0d47a1); margin-top: 8px;">
+             <button id="driveBtn" class="btn" style="background: linear-gradient(135deg, #1a73e8, #0d47a1); margin-top: 8px;">
              <span class="btn-text">☁️ Export to Proton Drive</span>
              <div class="loader"></div>
-            </button>
+             </button>
+             <button id="exportMemoryBtn" class="btn" style="background: linear-gradient(135deg, #ffd43b, #fab005); margin-top: 8px;">
+             <span class="btn-text">🧠 Export Memory</span>
+             <div class="loader"></div>
+             </button>
 
 
          <div id="exportStats" class="export-stats"></div>
@@ -215,9 +219,10 @@
                 
                 <div class="modal-body">
                     <div class="section">
-                     <h3> What's New (v7.1)</h3>
-                        <ul class="release-notes">
-                            <li><strong>Image Export:</strong> Extract generated images as HTML gallery or download individually.</li>
+                     <h3> What's New (v7.2)</h3>
+                         <ul class="release-notes">
+                             <li><strong>Memory Export:</strong> Export saved memories (Lumo brain) as structured JSON automatically opens Settings &gt; Memory panel.</li>
+                             <li><strong>Image Export:</strong> Extract generated images as HTML gallery or download individually.</li>
                             <li><strong>Resizable Window:</strong> Expand to full size for deep analysis.</li>
                             <li><strong>Smart Tooltips:</strong> Hover to read full messages, click checkbox to select.</li>
                             <li><strong>Live Stats:</strong> Word count and file size estimation.</li>

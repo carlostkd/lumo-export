@@ -2081,6 +2081,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const exportImageHtmlBtn = document.getElementById('exportImageHtmlBtn');
     const exportImageZipBtn = document.getElementById('exportImageZipBtn');
     let extractedImages = [];
+    const exportMemoryBtn = document.getElementById('exportMemoryBtn');
 
     const dataUrlToBlob = (dataUrl) => {
         const parts = dataUrl.split(',');
@@ -2255,6 +2256,112 @@ document.addEventListener('DOMContentLoaded', () => {
             }, i * 300);
         });
     });
+
+    const scanMemory = async () => {
+        exportMemoryBtn.disabled = true;
+        exportMemoryBtn.classList.add('loading');
+        const script = `
+            (function() {
+                function openSidebar() {
+                    var settingsBtn = document.querySelector('button.sidebar-item[aria-label="Settings"]');
+                    if (settingsBtn) return Promise.resolve();
+                    var toggleBtn = document.querySelector('button span.sr-only');
+                    if (!toggleBtn) return Promise.reject('Sidebar toggle button not found');
+                    var btn = toggleBtn.closest('button');
+                    btn.click();
+                    return new Promise(function(r) { setTimeout(r, 500); });
+                }
+                function wait(ms) {
+                    return new Promise(function(r) { setTimeout(r, ms); });
+                }
+                return openSidebar().then(function() {
+                    var settingsBtn = document.querySelector('button.sidebar-item[aria-label="Settings"]');
+                    if (!settingsBtn) throw new Error('Settings button not found after opening sidebar');
+                    settingsBtn.click();
+                    return wait(500);
+                }).then(function() {
+                    var memoryBtns = document.querySelectorAll('button span.text-ellipsis');
+                    var memoryBtn = null;
+                    memoryBtns.forEach(function(span) {
+                        if (span.textContent.trim() === 'Memory') {
+                            memoryBtn = span.closest('button');
+                        }
+                    });
+                    if (!memoryBtn) return { error: 'Memory button not found' };
+                    memoryBtn.click();
+                    return wait(800);
+                }).then(function() {
+                    var items = document.querySelectorAll('li.memory-panel-list-item');
+                    var memories = [];
+                    items.forEach(function(item) {
+                        var pEl = item.querySelector('p');
+                        var timeEl = item.querySelector('time');
+                        var sourceEl = item.querySelector('.memory-panel-source-pill');
+                        var content = pEl ? pEl.textContent.trim() : '';
+                        var datetime = timeEl ? timeEl.getAttribute('datetime') : '';
+                        var source = sourceEl ? sourceEl.textContent.trim() : '';
+                        if (content) {
+                            memories.push({ content: content, datetime: datetime, source: source });
+                        }
+                    });
+                    var closeBtn = document.querySelector('button.modal-close-button[title="Close"]');
+                    if (closeBtn) closeBtn.click();
+                    return { memories: memories };
+                });
+            })().catch(function(err) { return { error: err.message || String(err) }; });
+        `;
+        try {
+            const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
+            if (!tab.url.includes('lumo.proton.me')) {
+                setStatus('Please open a Lumo chat page first.', 'error');
+                exportMemoryBtn.disabled = false;
+                exportMemoryBtn.classList.remove('loading');
+                return;
+            }
+            const result = await browser.tabs.executeScript(tab.id, { code: script });
+            if (result && result[0]) {
+                const data = result[0];
+                if (data.error) {
+                    setStatus(data.error, 'error');
+                    exportMemoryBtn.disabled = false;
+                    exportMemoryBtn.classList.remove('loading');
+                    return;
+                }
+                const memories = data.memories;
+                if (memories.length === 0) {
+                    setStatus('No memories found.', 'error');
+                    exportMemoryBtn.disabled = false;
+                    exportMemoryBtn.classList.remove('loading');
+                    return;
+                }
+                const exportData = {
+                    exportedAt: new Date().toISOString(),
+                    totalMemories: memories.length,
+                    memories: memories
+                };
+                const json = JSON.stringify(exportData, null, 2);
+                const blob = new Blob([json], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'lumo-memory-export-' + new Date().toISOString().slice(0, 10) + '.json';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                setStatus('Exported ' + memories.length + ' memories!', 'success');
+            } else {
+                setStatus('No result from page.', 'error');
+            }
+        } catch (err) {
+            setStatus('Error scanning memories: ' + err.message, 'error');
+        } finally {
+            exportMemoryBtn.disabled = false;
+            exportMemoryBtn.classList.remove('loading');
+        }
+    };
+
+    exportMemoryBtn.addEventListener('click', scanMemory);
 
     scanPage();
 
