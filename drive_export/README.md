@@ -1,4 +1,4 @@
-HASH VERIFICATION V.7.3
+HASH VERIFICATION V.7.4
 
 New: Export memory
 
