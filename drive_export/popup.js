@@ -946,8 +946,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            const timestamp = new Date().toISOString().slice(0, 10);
-            const { filename, content, mimeType } = await buildExportData(format, isEncrypted, password, timestamp);
+            const now = new Date();
+            const pad = (n) => String(n).padStart(2, '0');
+            const timestamp = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
+            const timeStr = `${pad(now.getHours())}-${pad(now.getMinutes())}`;
+            const { filename, content, mimeType } = await buildExportData(format, isEncrypted, password, timestamp, timeStr);
 
             const blob = new Blob([content], { type: mimeType });
             const url = URL.createObjectURL(blob);
@@ -975,7 +978,7 @@ document.addEventListener('DOMContentLoaded', () => {
   
 
 
-    async function buildExportData(format, isEncrypted, password, timestamp) {
+    async function buildExportData(format, isEncrypted, password, timestamp, timeStr) {
         if (isEncrypted) {
             const filteredMessages = Array.from(selectedIndices).map(i => {
                 const msg = { ...allMessages[i] };
@@ -989,7 +992,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 messages: filteredMessages
             });
             const encryptedBuffer = await encryptData(jsonString, password);
-            return { content: encryptedBuffer, mimeType: 'application/octet-stream', filename: `lumo-chat-encrypted-${timestamp}.json.enc` };
+            return { content: encryptedBuffer, mimeType: 'application/octet-stream', filename: `lumo-export-${timestamp}-${timeStr}.json.enc` };
         } else {
             const filteredMessages = Array.from(selectedIndices).map(i => {
                 const msg = { ...allMessages[i] };
@@ -1066,7 +1069,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 mimeType = 'application/json';
                 extension = 'json';
             }
-            return { content, mimeType, filename: `lumo-chat-export-${timestamp}.${extension}` };
+            return { content, mimeType, filename: `lumo-export-${timestamp}-${timeStr}.${extension}` };
         }
     }
 
@@ -1127,7 +1130,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const format = formatSelect.value;
-        const timestamp = new Date().toISOString().slice(0, 10);
+        const now = new Date();
+        const pad = (n) => String(n).padStart(2, '0');
+        const timestamp = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
+        const timeStr = `${pad(now.getHours())}-${pad(now.getMinutes())}`;
 
         driveBtn.disabled = true;
         driveBtn.classList.add('loading');
@@ -1164,7 +1170,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const img = images[i];
                 const ext = (img.src.match(/^data:image\/(\w+);/) || [,'png'])[1];
                 const rawBase64 = img.src.split(',')[1];
-                const imgFilename = 'lumo-image-' + (i + 1) + '-' + timestamp + '.' + ext;
+                const imgFilename = `lumo-export-${timestamp}-${timeStr}-${i+1}.${ext}`;
                 setStatus('Uploading images... (' + (i+1) + '/' + images.length + ')', '', true);
                 const imgResponse = await sendToDrive(rawBase64, imgFilename, true);
                 if (imgResponse.success) {
@@ -1360,7 +1366,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `lumo-code-extract-${new Date().toISOString().slice(0, 10)}.md`;
+        a.download = (() => { const n = new Date(); const p = (x) => String(x).padStart(2,'0'); return `lumo-export-${n.getFullYear()}-${p(n.getMonth()+1)}-${p(n.getDate())}-${p(n.getHours())}-${p(n.getMinutes())}.md`; })();
         a.click();
         URL.revokeObjectURL(url);
         setStatus(`Exported ${selected.length} code blocks!`, 'success');
@@ -1382,7 +1388,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `lumo-code-extract-${new Date().toISOString().slice(0, 10)}.txt`;
+        a.download = (() => { const n = new Date(); const p = (x) => String(x).padStart(2,'0'); return `lumo-export-${n.getFullYear()}-${p(n.getMonth()+1)}-${p(n.getDate())}-${p(n.getHours())}-${p(n.getMinutes())}.txt`; })();
         a.click();
         URL.revokeObjectURL(url);
         setStatus(`Exported ${selected.length} code blocks!`, 'success');
@@ -2223,7 +2229,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'lumo-images-' + new Date().toISOString().slice(0, 10) + '.html';
+        a.download = (() => { const n = new Date(); const p = (x) => String(x).padStart(2,'0'); return `lumo-export-${n.getFullYear()}-${p(n.getMonth()+1)}-${p(n.getDate())}-${p(n.getHours())}-${p(n.getMinutes())}.html`; })();
         a.click();
         URL.revokeObjectURL(url);
         setStatus('Exported ' + selected.length + ' images!', 'success');
@@ -2242,7 +2248,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = 'lumo-image-' + (i + 1) + '.' + ext;
+                a.download = (() => { const n = new Date(); const p = (x) => String(x).padStart(2,'0'); return `lumo-export-${n.getFullYear()}-${p(n.getMonth()+1)}-${p(n.getDate())}-${p(n.getHours())}-${p(n.getMinutes())}-${i+1}.${ext}`; })();
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
@@ -2344,7 +2350,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = 'lumo-memory-export-' + new Date().toISOString().slice(0, 10) + '.json';
+                a.download = (() => { const n = new Date(); const p = (x) => String(x).padStart(2,'0'); return `lumo-export-${n.getFullYear()}-${p(n.getMonth()+1)}-${p(n.getDate())}-${p(n.getHours())}-${p(n.getMinutes())}.json`; })();
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
