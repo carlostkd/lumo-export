@@ -16,11 +16,11 @@
 
 </div>
 
-HASH VERIFICATION V.7.2
+HASH VERIFICATION V.7.3
 
 New: Export memory
 
-Hash: 5a4fe0aab83fdaa3e46c9b043f8a44dc35e83128a00d7a322cd75de3cba71ac8
+Hash: 29a6586a2ce03e157bdbd6a42da621458e6c071e971f9c270f52792c4b5c5e50
 
 Note: Hash verification is performed exclusively on the JavaScript file, as it represents the sole attack vector in this implementation.
 ```
