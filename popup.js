@@ -946,7 +946,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            const timestamp = new Date().toISOString().slice(0, 10);
+            const now = new Date();
+            const pad = (n) => String(n).padStart(2, '0');
+            const timestamp = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
+            const timeStr = `${pad(now.getHours())}-${pad(now.getMinutes())}`;
             let content, mimeType, extension, filename;
 
             if (isEncrypted) {
@@ -965,7 +968,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 content = encryptedBuffer;
                 mimeType = 'application/octet-stream';
                 extension = 'json.enc';
-                filename = `lumo-chat-encrypted-${timestamp}.${extension}`;
+                filename = `lumo-export-${timestamp}-${timeStr}.json.enc`;
             } else {
                                 const filteredMessages = Array.from(selectedIndices).map(i => {
                     const msg = { ...allMessages[i] };
@@ -984,7 +987,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }).join('\n---\n');
                     mimeType = 'text/plain';
                     extension = 'txt';
-                    filename = `lumo-chat-export-${timestamp}.${extension}`;
+                    filename = `lumo-export-${timestamp}-${timeStr}.${extension}`;
                 } else if (format === '3') {
                     let html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Lumo Chat Export</title><style>body{font-family:sans-serif;max-width:800px;margin:2rem auto;padding:0 1rem;line-height:1.6;background:#fafafa}.message{margin-bottom:1.5rem;padding:1rem;border-radius:8px}.user{background:#e3f2fd}.assistant{background:#f5f5f5}.role{font-weight:bold;margin-bottom:0.5rem;color:#555;text-transform:uppercase;font-size:12px}.content{white-space:pre-wrap}.images{display:flex;flex-wrap:wrap;gap:12px;margin-top:12px}.images img{max-width:100%;border-radius:8px;max-height:400px;object-fit:contain}</style></head><body><h1>Lumo Chat Export - ${timestamp}</h1>`;
                     filteredMessages.forEach(m => {
@@ -1004,7 +1007,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     content = html;
                     mimeType = 'text/html';
                     extension = 'html';
-                    filename = `lumo-chat-export-${timestamp}.${extension}`;
+                    filename = `lumo-export-${timestamp}-${timeStr}.${extension}`;
                 } else if (format === '4') {
                     let md = `# Lumo Chat Export\n\n`;
                     md += `**Date:** ${timestamp}\n\n`;
@@ -1027,7 +1030,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     content = md;
                     mimeType = 'text/markdown';
                     extension = 'md';
-                    filename = `lumo-chat-export-${timestamp}.md`;
+                    filename = `lumo-export-${timestamp}-${timeStr}.md`;
                     } else if (format === '5') {
                     const jsonString = JSON.stringify({
                         exportedAt: new Date().toISOString(),
@@ -1038,7 +1041,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     content = base64Content;
                     mimeType = 'text/plain';
                     extension = 'txt';
-                    filename = `lumo-chat-base64-${timestamp}.${extension}`;
+                    filename = `lumo-export-${timestamp}-${timeStr}.${extension}`;
                 } else {
                     content = JSON.stringify({
                         exportedAt: new Date().toISOString(),
@@ -1047,7 +1050,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }, null, 2);
                     mimeType = 'application/json';
                     extension = 'json';
-                    filename = `lumo-chat-export-${timestamp}.${extension}`;
+                    filename = `lumo-export-${timestamp}-${timeStr}.${extension}`;
                 }
 
 
@@ -1251,7 +1254,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `lumo-code-extract-${new Date().toISOString().slice(0, 10)}.md`;
+        a.download = (() => { const n = new Date(); const p = (x) => String(x).padStart(2,'0'); return `lumo-export-${n.getFullYear()}-${p(n.getMonth()+1)}-${p(n.getDate())}-${p(n.getHours())}-${p(n.getMinutes())}.md`; })();
         a.click();
         URL.revokeObjectURL(url);
         setStatus(`Exported ${selected.length} code blocks!`, 'success');
@@ -1273,7 +1276,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `lumo-code-extract-${new Date().toISOString().slice(0, 10)}.txt`;
+        a.download = (() => { const n = new Date(); const p = (x) => String(x).padStart(2,'0'); return `lumo-export-${n.getFullYear()}-${p(n.getMonth()+1)}-${p(n.getDate())}-${p(n.getHours())}-${p(n.getMinutes())}.txt`; })();
         a.click();
         URL.revokeObjectURL(url);
         setStatus(`Exported ${selected.length} code blocks!`, 'success');
@@ -2112,7 +2115,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'lumo-images-' + new Date().toISOString().slice(0, 10) + '.html';
+        a.download = (() => { const n = new Date(); const p = (x) => String(x).padStart(2,'0'); return `lumo-export-${n.getFullYear()}-${p(n.getMonth()+1)}-${p(n.getDate())}-${p(n.getHours())}-${p(n.getMinutes())}.html`; })();
         a.click();
         URL.revokeObjectURL(url);
         setStatus('Exported ' + selected.length + ' images!', 'success');
@@ -2131,7 +2134,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = 'lumo-image-' + (i + 1) + '.' + ext;
+                a.download = (() => { const n = new Date(); const p = (x) => String(x).padStart(2,'0'); return `lumo-export-${n.getFullYear()}-${p(n.getMonth()+1)}-${p(n.getDate())}-${p(n.getHours())}-${p(n.getMinutes())}-${i+1}.${ext}`; })();
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
@@ -2233,7 +2236,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = 'lumo-memory-export-' + new Date().toISOString().slice(0, 10) + '.json';
+                a.download = (() => { const n = new Date(); const p = (x) => String(x).padStart(2,'0'); return `lumo-export-${n.getFullYear()}-${p(n.getMonth()+1)}-${p(n.getDate())}-${p(n.getHours())}-${p(n.getMinutes())}.json`; })();
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
