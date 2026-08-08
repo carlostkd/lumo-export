@@ -4,14 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lumo Chat Export</title>
-    <!-- EXPECTED_HASH: 29a6586a2ce03e157bdbd6a42da621458e6c071e971f9c270f52792c4b5c5e50 -->
+    <!-- EXPECTED_HASH: dbd4dfb7cb5b882931952dca341c3fd0e498f42db073e26426beab6f175b62d6 -->
     <link rel="stylesheet" href="popup.css">
 </head>
 <body>
     <div class="container">
                    <div class="header">
             <div class="header-top">
-                <img src="lumo-images.svg" alt="Icon" class="header-icon">
+                <img src="icon.png" alt="Icon" class="header-icon">
                 <h1>Lumo Export</h1>
             </div>
             <div class="header-buttons">
@@ -49,6 +49,11 @@
                 </div>
             </div>
             <input type="hidden" id="format" value="1">
+        </div>
+
+        <div class="form-group">
+            <label for="filenameInput">File Name (optional)</label>
+            <input type="text" id="filenameInput" class="filename-input" placeholder="Leave empty to use chat/project title + date">
         </div>
 
 
@@ -217,9 +222,8 @@
                 
                 <div class="modal-body">
                     <div class="section">
-                     <h3> What's New (v7.3)</h3>
+                     <h3> What's New (v7.2)</h3>
                         <ul class="release-notes">
-                            <li><strong>Timestamped Filenames:</strong> All exports now use <code>lumo-export-YYYY-MM-DD-HH-MM</code> naming with hour and minute precision — no more overwrites when exporting multiple times in a day.</li>
                             <li><strong>Memory Export:</strong> Export saved memories (Lumo brain) as structured JSON automatically opens Settings &gt; Memory panel.</li>
                             <li><strong>Image Export:</strong> Extract generated images as HTML gallery or download individually.</li>
                             <li><strong>Resizable Window:</strong> Expand to full size for deep analysis.</li>
