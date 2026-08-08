@@ -20,7 +20,7 @@ HASH VERIFICATION V.7.4
 
 New: Export memory
 
-Hash: 29a6586a2ce03e157bdbd6a42da621458e6c071e971f9c270f52792c4b5c5e50
+Hash: dbd4dfb7cb5b882931952dca341c3fd0e498f42db073e26426beab6f175b62d6
 
 Note: Hash verification is performed exclusively on the JavaScript file, as it represents the sole attack vector in this implementation.
 ```
