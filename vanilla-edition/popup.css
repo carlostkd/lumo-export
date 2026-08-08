@@ -97,6 +97,33 @@ h1 {
     position: relative;
 }
 
+.filename-input {
+    width: 100%;
+    padding: 11px 14px;
+    border: 1px solid rgba(108, 99, 255, 0.1);
+    border-radius: 10px;
+    background: rgba(22, 22, 50, 0.8);
+    color: #e0e0f0;
+    font-size: 13px;
+    font-weight: 500;
+    outline: none;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.filename-input:hover {
+    border-color: rgba(108, 99, 255, 0.3);
+    background: rgba(22, 22, 50, 0.95);
+}
+
+.filename-input:focus {
+    border-color: #6c63ff;
+    box-shadow: 0 0 20px rgba(108, 99, 255, 0.15);
+}
+
+.filename-input::placeholder {
+    color: #66669a;
+}
+
 label {
     display: block;
     font-size: 11px;

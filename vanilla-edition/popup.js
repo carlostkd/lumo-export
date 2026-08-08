@@ -219,6 +219,41 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    const sanitizeFilename = (name) => {
+        let clean = String(name || '').trim();
+        clean = clean.replace(/[\\/:*?"<>|]+/g, ' ').replace(/\s+/g, ' ').trim();
+        return clean || 'lumo-export';
+    };
+
+    const getTitlePart = async (tab, fallback) => {
+        let titlePart = fallback;
+        const filenameInput = document.getElementById('filenameInput');
+        if (filenameInput) {
+            const customName = filenameInput.value.trim();
+            if (customName) {
+                return sanitizeFilename(customName);
+            }
+        }
+        try {
+            const titleResult = await browser.tabs.executeScript(tab.id, { code: `
+                (function() {
+                    const chatBtn = document.querySelector('.conversation-header-title-view button');
+                    const chatTitle = chatBtn ? chatBtn.textContent.trim() : '';
+                    const projEl = document.querySelector('h1.project-detail-title');
+                    const projectTitle = projEl ? projEl.textContent.trim() : '';
+                    return (chatTitle || projectTitle || '');
+                })();
+            ` });
+            if (titleResult && titleResult[0]) {
+                const raw = String(titleResult[0]).trim();
+                if (raw) titlePart = raw;
+            }
+        } catch (e) {
+            console.error('Failed to extract title:', e);
+        }
+        return sanitizeFilename(titlePart);
+    };
+
     const checkPasswordMatch = () => {
         const pass1 = passwordInput.value;
         const pass2 = confirmPasswordInput.value;
@@ -908,6 +943,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
+            const titlePart = await getTitlePart(tab, 'lumo-export');
+
             const now = new Date();
             const pad = (n) => String(n).padStart(2, '0');
             const timestamp = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
@@ -930,7 +967,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 content = encryptedBuffer;
                 mimeType = 'application/octet-stream';
                 extension = 'json.enc';
-                filename = `lumo-export-${timestamp}-${timeStr}.json.enc`;
+                filename = `${titlePart}-${timestamp}-${timeStr}.json.enc`;
             } else {
                                 const filteredMessages = Array.from(selectedIndices).map(i => {
                     const msg = { ...allMessages[i] };
@@ -949,7 +986,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }).join('\n---\n');
                     mimeType = 'text/plain';
                     extension = 'txt';
-                    filename = `lumo-export-${timestamp}-${timeStr}.${extension}`;
+                    filename = `${titlePart}-${timestamp}-${timeStr}.${extension}`;
                 } else if (format === '3') {
                     let html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Lumo Chat Export</title><style>body{font-family:sans-serif;max-width:800px;margin:2rem auto;padding:0 1rem;line-height:1.6;background:#fafafa}.message{margin-bottom:1.5rem;padding:1rem;border-radius:8px}.user{background:#e3f2fd}.assistant{background:#f5f5f5}.role{font-weight:bold;margin-bottom:0.5rem;color:#555;text-transform:uppercase;font-size:12px}.content{white-space:pre-wrap}.images{display:flex;flex-wrap:wrap;gap:12px;margin-top:12px}.images img{max-width:100%;border-radius:8px;max-height:400px;object-fit:contain}</style></head><body><h1>Lumo Chat Export - ${timestamp}</h1>`;
                     filteredMessages.forEach(m => {
@@ -969,7 +1006,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     content = html;
                     mimeType = 'text/html';
                     extension = 'html';
-                    filename = `lumo-export-${timestamp}-${timeStr}.${extension}`;
+                    filename = `${titlePart}-${timestamp}-${timeStr}.${extension}`;
                 } else if (format === '4') {
                     let md = `# Lumo Chat Export\n\n`;
                     md += `**Date:** ${timestamp}\n\n`;
@@ -992,7 +1029,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     content = md;
                     mimeType = 'text/markdown';
                     extension = 'md';
-                    filename = `lumo-export-${timestamp}-${timeStr}.md`;
+                    filename = `${titlePart}-${timestamp}-${timeStr}.md`;
                     } else if (format === '5') {
                     const jsonString = JSON.stringify({
                         exportedAt: new Date().toISOString(),
@@ -1003,7 +1040,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     content = base64Content;
                     mimeType = 'text/plain';
                     extension = 'txt';
-                    filename = `lumo-export-${timestamp}-${timeStr}.${extension}`;
+                    filename = `${titlePart}-${timestamp}-${timeStr}.${extension}`;
                 } else {
                     content = JSON.stringify({
                         exportedAt: new Date().toISOString(),
@@ -1012,9 +1049,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     }, null, 2);
                     mimeType = 'application/json';
                     extension = 'json';
-                    filename = `lumo-export-${timestamp}-${timeStr}.${extension}`;
+                    filename = `${titlePart}-${timestamp}-${timeStr}.${extension}`;
                 }
-
 
 
 
@@ -1143,10 +1179,16 @@ document.addEventListener('DOMContentLoaded', () => {
         codeListEl.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
     });
 
-    exportCodeMdBtn.addEventListener('click', () => {
+    exportCodeMdBtn.addEventListener('click', async () => {
         const selected = extractedCodes.filter((_, i) => codeListEl.querySelectorAll('input[type="checkbox"]')[i].checked);
         if (selected.length === 0) { setStatus('Select at least one code block.', 'error'); return; }
-        
+
+        const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
+        const titlePart = await getTitlePart(tab, 'lumo-export');
+        const n = new Date();
+        const p = (x) => String(x).padStart(2,'0');
+        const timeStr = `${n.getFullYear()}-${p(n.getMonth()+1)}-${p(n.getDate())}-${p(n.getHours())}-${p(n.getMinutes())}`;
+
         let md = '# Extracted Code Blocks\n\n';
         selected.forEach((item, i) => {
             md += `## Snippet ${i+1}: ${item.lang.toUpperCase()}\n\n`;
@@ -1160,7 +1202,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = (() => { const n = new Date(); const p = (x) => String(x).padStart(2,'0'); return `lumo-export-${n.getFullYear()}-${p(n.getMonth()+1)}-${p(n.getDate())}-${p(n.getHours())}-${p(n.getMinutes())}.md`; })();
+        a.download = `${titlePart}-${timeStr}.md`;
         a.click();
         URL.revokeObjectURL(url);
         setStatus(`Exported ${selected.length} code blocks!`, 'success');
@@ -1168,10 +1210,16 @@ document.addEventListener('DOMContentLoaded', () => {
         codeExtractModal.classList.add('hidden');
     });
 
-    exportCodeTxtBtn.addEventListener('click', () => {
+    exportCodeTxtBtn.addEventListener('click', async () => {
         const selected = extractedCodes.filter((_, i) => codeListEl.querySelectorAll('input[type="checkbox"]')[i].checked);
         if (selected.length === 0) { setStatus('Select at least one code block.', 'error'); return; }
-        
+
+        const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
+        const titlePart = await getTitlePart(tab, 'lumo-export');
+        const n = new Date();
+        const p = (x) => String(x).padStart(2,'0');
+        const timeStr = `${n.getFullYear()}-${p(n.getMonth()+1)}-${p(n.getDate())}-${p(n.getHours())}-${p(n.getMinutes())}`;
+
         let txt = '';
         selected.forEach((item, i) => {
             txt += `--- Snippet ${i+1}: ${item.lang.toUpperCase()} ---\n\n`;
@@ -1182,7 +1230,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = (() => { const n = new Date(); const p = (x) => String(x).padStart(2,'0'); return `lumo-export-${n.getFullYear()}-${p(n.getMonth()+1)}-${p(n.getDate())}-${p(n.getHours())}-${p(n.getMinutes())}.txt`; })();
+        a.download = `${titlePart}-${timeStr}.txt`;
         a.click();
         URL.revokeObjectURL(url);
         setStatus(`Exported ${selected.length} code blocks!`, 'success');
@@ -1697,9 +1745,14 @@ document.addEventListener('DOMContentLoaded', () => {
         imageListEl.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
     });
 
-    exportImageHtmlBtn.addEventListener('click', () => {
+    exportImageHtmlBtn.addEventListener('click', async () => {
         const selected = getSelectedImages();
         if (selected.length === 0) { setStatus('Select at least one image.', 'error'); return; }
+        const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
+        const titlePart = await getTitlePart(tab, 'lumo-export');
+        const n = new Date();
+        const p = (x) => String(x).padStart(2,'0');
+        const timeStr = `${n.getFullYear()}-${p(n.getMonth()+1)}-${p(n.getDate())}-${p(n.getHours())}-${p(n.getMinutes())}`;
         let html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Extracted Images</title><style>body{font-family:sans-serif;max-width:1000px;margin:2rem auto;padding:0 1rem;background:#1a1a2e;color:#e0e0e0}.gallery{display:flex;flex-wrap:wrap;gap:20px;justify-content:center}.card{background:#16213e;border-radius:12px;padding:12px;border:1px solid #2a2a4a;max-width:400px}.card img{width:100%;border-radius:8px;display:block}.card .label{font-size:12px;color:#a0a0b0;margin-top:8px;text-align:center}h1{text-align:center;color:#f06595}</style></head><body><h1>Extracted Images</h1><div class="gallery">';
         selected.forEach(img => {
             const safeAlt = img.alt.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -1710,7 +1763,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = (() => { const n = new Date(); const p = (x) => String(x).padStart(2,'0'); return `lumo-export-${n.getFullYear()}-${p(n.getMonth()+1)}-${p(n.getDate())}-${p(n.getHours())}-${p(n.getMinutes())}.html`; })();
+        a.download = `${titlePart}-${timeStr}.html`;
         a.click();
         URL.revokeObjectURL(url);
         setStatus('Exported ' + selected.length + ' images!', 'success');
@@ -1718,9 +1771,14 @@ document.addEventListener('DOMContentLoaded', () => {
         imageExtractModal.classList.add('hidden');
     });
 
-    exportImageZipBtn.addEventListener('click', () => {
+    exportImageZipBtn.addEventListener('click', async () => {
         const selected = getSelectedImages();
         if (selected.length === 0) { setStatus('Select at least one image.', 'error'); return; }
+        const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
+        const titlePart = await getTitlePart(tab, 'lumo-export');
+        const n = new Date();
+        const p = (x) => String(x).padStart(2,'0');
+        const timeStr = `${n.getFullYear()}-${p(n.getMonth()+1)}-${p(n.getDate())}-${p(n.getHours())}-${p(n.getMinutes())}`;
         let done = 0;
         selected.forEach((img, i) => {
             setTimeout(() => {
@@ -1729,7 +1787,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = (() => { const n = new Date(); const p = (x) => String(x).padStart(2,'0'); return `lumo-export-${n.getFullYear()}-${p(n.getMonth()+1)}-${p(n.getDate())}-${p(n.getHours())}-${p(n.getMinutes())}-${i+1}.${ext}`; })();
+                a.download = `${titlePart}-${timeStr}-${i+1}.${ext}`;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
@@ -1805,6 +1863,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 exportMemoryBtn.classList.remove('loading');
                 return;
             }
+            const titlePart = await getTitlePart(tab, 'lumo-export');
             const result = await browser.tabs.executeScript(tab.id, { code: script });
             if (result && result[0]) {
                 const data = result[0];
@@ -1831,7 +1890,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = (() => { const n = new Date(); const p = (x) => String(x).padStart(2,'0'); return `lumo-export-${n.getFullYear()}-${p(n.getMonth()+1)}-${p(n.getDate())}-${p(n.getHours())}-${p(n.getMinutes())}.json`; })();
+                const now = new Date();
+                const pad = (x) => String(x).padStart(2,'0');
+                const timeStr = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}-${pad(now.getHours())}-${pad(now.getMinutes())}`;
+                a.download = `${titlePart}-${timeStr}.json`;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
