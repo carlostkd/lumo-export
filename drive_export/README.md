@@ -1,8 +1,8 @@
-HASH VERIFICATION V.7.4
+HASH VERIFICATION V.7.6
 
 New: Export memory
 
-Hash: 1d3d5869dc67bf614f4c2eb1e06c3ab92684415f9d53024aca39c9d62bc69140
+Hash: d85693a32a4952b70846418c29c7f3131bce773798db5cc07f75318284f3e538
 
 Note: Hash verification is performed exclusively on the 
 JavaScript file, as it represents the sole attack vector in this 
