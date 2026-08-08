@@ -16,7 +16,7 @@
 
 </div>
 
-HASH VERIFICATION V.7.4
+HASH VERIFICATION V.7.6
 
 New: Export memory
 
