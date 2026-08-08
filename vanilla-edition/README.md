@@ -1,10 +1,10 @@
 # Lumo Chat Export  |  Vanilla Edition 🛠️
 
-HASH VERIFICATION V.7.4
+HASH VERIFICATION V.7.6
 
 New: Export memory
 
-Hash: 29c447c8ae2cbbe1013938b0c5794dcc00a67f4b8db10dd8e9252d230969b4a4
+Hash: b46785c72055deac84d0929cc52edc23a2e5fc059ffc809f76001cdaa883200f
 
 Note: Hash verification is performed exclusively on the 
 JavaScript file, as it represents the sole attack vector in this 
