@@ -2,9 +2,9 @@
 
 HASH VERIFICATION V.7.6
 
-New: Export memory
+New: Export Thinking useful for debug and to help improve prompts
 
-Hash: b46785c72055deac84d0929cc52edc23a2e5fc059ffc809f76001cdaa883200f
+Hash: 428d92b31cd0eeed58db89dc18d2eb4f88124b1608a45502cea79a05e2e8cfab
 
 Note: Hash verification is performed exclusively on the 
 JavaScript file, as it represents the sole attack vector in this 
