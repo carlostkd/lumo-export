@@ -2017,6 +2017,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const exportImageZipBtn = document.getElementById('exportImageZipBtn');
     let extractedImages = [];
     const exportMemoryBtn = document.getElementById('exportMemoryBtn');
+    const exportThinkingBtn = document.getElementById('exportThinkingBtn');
+    const thinkingExtractModal = document.getElementById('thinkingExtractModal');
+    const closeThinkingModalBtn = document.getElementById('closeThinkingModalBtn');
+    const thinkingListEl = document.getElementById('thinkingList');
+    const thinkingCountEl = document.getElementById('thinkingCount');
+    const selectAllThinkingBtn = document.getElementById('selectAllThinkingBtn');
+    const deselectAllThinkingBtn = document.getElementById('deselectAllThinkingBtn');
+    const exportThinkingHtmlBtn = document.getElementById('exportThinkingHtmlBtn');
+    const exportThinkingTxtBtn = document.getElementById('exportThinkingTxtBtn');
+    let extractedThinking = [];
 
     const dataUrlToBlob = (dataUrl) => {
         const parts = dataUrl.split(',');
@@ -2303,6 +2313,278 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     exportMemoryBtn.addEventListener('click', scanMemory);
+
+    const scanThinking = async () => {
+        exportThinkingBtn.disabled = true;
+        exportThinkingBtn.classList.add('loading');
+        const script = `
+            (function() {
+                const thinkings = [];
+                const selectors = [
+                    '.thinking-step-body',
+                    '[class*="thinking"]',
+                    '[class*="reasoning"]',
+                    '[data-thinking]',
+                    '.inner-thought',
+                    '.thought-process'
+                ];
+                
+                let containers = [];
+                for (let sel of selectors) {
+                    const found = document.querySelectorAll(sel);
+                    if (found.length > 0) {
+                        containers = Array.from(found);
+                        break;
+                    }
+                }
+
+                if (containers.length === 0) {
+                    return [];
+                }
+
+                containers.forEach((container, index) => {
+                    try {
+                        const outerHtml = container.outerHTML;
+                        const innerText = container.innerText || container.textContent;
+                        
+                        if (outerHtml && innerText.trim().length > 0) {
+                            thinkings.push({
+                                index: index + 1,
+                                html: outerHtml,
+                                text: innerText.trim(),
+                                preview: innerText.substring(0, 80) + (innerText.length > 80 ? '...' : '')
+                            });
+                        }
+                    } catch (e) {
+                        console.error('Error extracting thinking:', e);
+                    }
+                });
+                
+                return thinkings;
+            })();
+        `;
+        try {
+            const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
+            if (!tab.url.includes('lumo.proton.me')) {
+                setStatus('Please open a Lumo chat page first.', 'error');
+                exportThinkingBtn.disabled = false;
+                exportThinkingBtn.classList.remove('loading');
+                return;
+            }
+            const result = await browser.tabs.executeScript(tab.id, { code: script });
+            if (result && result[0]) {
+                extractedThinking = result[0];
+                renderThinkingList();
+                thinkingExtractModal.classList.remove('hidden');
+                thinkingExtractModal.classList.add('active');
+            } else {
+                setStatus('No thinking steps found.', 'error');
+            }
+        } catch (err) {
+            setStatus('Error scanning thinking: ' + err.message, 'error');
+        } finally {
+            exportThinkingBtn.disabled = false;
+            exportThinkingBtn.classList.remove('loading');
+        }
+    };
+
+    const renderThinkingList = () => {
+        while (thinkingListEl.firstChild) {
+            thinkingListEl.removeChild(thinkingListEl.firstChild);
+        }
+        thinkingCountEl.textContent = extractedThinking.length;
+        
+        if (extractedThinking.length === 0) {
+            const emptyMsg = document.createElement('div');
+            emptyMsg.textContent = 'No thinking steps found.';
+            emptyMsg.style.cssText = 'color: #a0a0b0; padding: 20px; text-align: center; width: 100%;';
+            thinkingListEl.appendChild(emptyMsg);
+            return;
+        }
+
+        extractedThinking.forEach((item, idx) => {
+            const row = document.createElement('div');
+            row.className = 'list-item';
+            row.style.cssText = 'border-bottom: 1px solid #2a2a4a; padding: 10px; cursor: pointer;';
+            row.dataset.index = idx;
+            
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.checked = true;
+            checkbox.style.cssText = 'margin-right: 10px; accent-color: #4dabf7; cursor: pointer;';
+            
+            const content = document.createElement('div');
+            content.style.cssText = 'flex: 1; overflow: hidden;';
+            
+            const preview = document.createElement('div');
+            preview.style.cssText = 'font-size: 12px; color: #c8c8e0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;';
+            preview.textContent = item.preview;
+            
+            content.appendChild(preview);
+            row.appendChild(checkbox);
+            row.appendChild(content);
+
+            row.addEventListener('click', (e) => {
+                if (e.target === checkbox) return;
+                checkbox.checked = !checkbox.checked;
+            });
+            
+            checkbox.addEventListener('change', (e) => e.stopPropagation());
+
+            if (tooltipCheck.checked) {
+                row.addEventListener('mouseenter', () => {
+                    clearTimeout(tooltipTimeout);
+                    floatingTooltip.innerHTML = '';
+                    
+                    const header = document.createElement('div');
+                    header.className = 'tooltip-header';
+                    header.textContent = `Thinking #${idx + 1}`;
+                    floatingTooltip.appendChild(header);
+                    
+                    const tooltipContent = document.createElement('div');
+                    tooltipContent.className = 'tooltip-content';
+                    tooltipContent.style.cssText = 'max-height: 300px; overflow-y: auto; font-size: 11px; white-space: pre-wrap; background: #0d0d2b; padding: 10px; border-radius: 4px;';
+                    tooltipContent.textContent = item.text;
+                    floatingTooltip.appendChild(tooltipContent);
+                    
+                    header.addEventListener('mousedown', (e) => {
+                        isDraggingTooltip = true;
+                        currentTooltipHeader = header;
+                        dragStartX = e.clientX;
+                        dragStartY = e.clientY;
+                        dragInitialLeft = floatingTooltip.offsetLeft;
+                        dragInitialTop = floatingTooltip.offsetTop;
+                        floatingTooltip.style.cursor = 'grabbing';
+                        e.preventDefault();
+                    });
+                    
+                    const rect = row.getBoundingClientRect();
+                    let top = rect.bottom + 5;
+                    let left = rect.left + 30;
+                    if (left + 340 > window.innerWidth) left = window.innerWidth - 350;
+                    if (left < 5) left = 5;
+                    if (top + 400 > window.innerHeight) top = rect.top - 410;
+                    if (top < 5) top = 5;
+                    
+                    floatingTooltip.style.top = `${top}px`;
+                    floatingTooltip.style.left = `${left}px`;
+                    floatingTooltip.classList.add('visible');
+                });
+                
+                row.addEventListener('mouseleave', () => {
+                    clearTimeout(tooltipTimeout);
+                    tooltipTimeout = setTimeout(() => {
+                        if (!isMouseOverTooltip) {
+                            floatingTooltip.classList.remove('visible');
+                            if (isDraggingTooltip) {
+                                isDraggingTooltip = false;
+                                currentTooltipHeader = null;
+                                floatingTooltip.style.cursor = 'grab';
+                            }
+                        }
+                    }, 200);
+                });
+            }
+
+            thinkingListEl.appendChild(row);
+        });
+    };
+
+    const getSelectedThinking = () => {
+        return extractedThinking.filter((_, i) => {
+            const cb = thinkingListEl.querySelectorAll('input[type="checkbox"]')[i];
+            return cb && cb.checked;
+        });
+    };
+
+    exportThinkingBtn.addEventListener('click', scanThinking);
+
+    closeThinkingModalBtn.addEventListener('click', () => {
+        thinkingExtractModal.classList.remove('active');
+        thinkingExtractModal.classList.add('hidden');
+    });
+
+    thinkingExtractModal.addEventListener('click', (e) => {
+        if (e.target === thinkingExtractModal) {
+            thinkingExtractModal.classList.remove('active');
+            thinkingExtractModal.classList.add('hidden');
+        }
+    });
+
+    selectAllThinkingBtn.addEventListener('click', () => {
+        thinkingListEl.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = true);
+    });
+
+    deselectAllThinkingBtn.addEventListener('click', () => {
+        thinkingListEl.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+    });
+
+    exportThinkingHtmlBtn.addEventListener('click', async () => {
+        const selected = getSelectedThinking();
+        if (selected.length === 0) { 
+            setStatus('Select at least one thinking step.', 'error'); 
+            return; 
+        }
+        
+        const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
+        const titlePart = await getTitlePart(tab, 'lumo-thinking-export');
+        const timestamp = new Date().toISOString().slice(0, 10);
+        
+        let html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Extracted Thinking Steps</title><style>body{font-family:sans-serif;max-width:1000px;margin:2rem auto;padding:0 1rem;background:#1a1a2e;color:#e0e0e0}.thinking-card{background:#16213e;border-radius:12px;padding:16px;border:1px solid #2a2a4a;margin-bottom:16px}.thinking-number{font-size:11px;color:#4dabf7;font-weight:bold;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px}.thinking-content{background:#0d0d2b;border-radius:8px;padding:12px;font-family:monospace;font-size:12px;white-space:pre-wrap;overflow-x:auto;h1{text-align:center;color:#4dabf7}}</style></head><body><h1>Extracted Thinking Steps</h1><p style="text-align:center;color:#a0a0b0">Exported on ${timestamp}</p>`;
+        
+        selected.forEach((item, i) => {
+            html += `<div class="thinking-card"><div class="thinking-number">Thinking Step #${item.index}</div><div class="thinking-content">${item.text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div></div>`;
+        });
+        
+        html += '</body></html>';
+        
+        const blob = new Blob([html], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${titlePart}-thinking-${timestamp}.html`;
+        a.click();
+        URL.revokeObjectURL(url);
+        
+        setStatus(`Exported ${selected.length} thinking steps!`, 'success');
+        thinkingExtractModal.classList.remove('active');
+        thinkingExtractModal.classList.add('hidden');
+    });
+
+    exportThinkingTxtBtn.addEventListener('click', async () => {
+        const selected = getSelectedThinking();
+        if (selected.length === 0) { 
+            setStatus('Select at least one thinking step.', 'error'); 
+            return; 
+        }
+        
+        const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
+        const titlePart = await getTitlePart(tab, 'lumo-thinking-export');
+        const timestamp = new Date().toISOString().slice(0, 10);
+        
+        let txt = `EXTRACTED THINKING STEPS\n`;
+        txt += `Exported: ${timestamp}\n`;
+        txt += `Total: ${selected.length} step(s)\n`;
+        txt += `${'='.repeat(60)}\n\n`;
+        
+        selected.forEach((item, i) => {
+            txt += `--- Thinking Step #${item.index} ---\n\n`;
+            txt += `${item.text}\n\n`;
+            txt += `${'─'.repeat(60)}\n\n`;
+        });
+        
+        const blob = new Blob([txt], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${titlePart}-thinking-${timestamp}.txt`;
+        a.click();
+        URL.revokeObjectURL(url);
+        
+        setStatus(`Exported ${selected.length} thinking steps!`, 'success');
+        thinkingExtractModal.classList.remove('active');
+        thinkingExtractModal.classList.add('hidden');
+    });
 
     scanPage();
 

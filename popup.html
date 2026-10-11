@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lumo Chat Export</title>
-    <!-- EXPECTED_HASH: dbd4dfb7cb5b882931952dca341c3fd0e498f42db073e26426beab6f175b62d6 -->
+    <!-- EXPECTED_HASH: bb69610012572afe1362eabc102df790f12f70682d2927ad78ea7e21487e1b52 -->
     <link rel="stylesheet" href="popup.css">
 </head>
 <body>
@@ -142,7 +142,10 @@
              <span class="btn-text">🧠 Export Memory</span>
              <div class="loader"></div>
              </button>
-
+             <button id="exportThinkingBtn" class="btn" style="background: linear-gradient(135deg, #4dabf7, #228be6); margin-top: 8px;">
+             <span class="btn-text">💭 Export Thinking</span>
+             <div class="loader"></div>
+             </button>
 
 
 
@@ -213,6 +216,38 @@
             </div>
         </div>
 
+        <div id="thinkingExtractModal" class="modal-overlay hidden">
+            <div class="modal-content" style="max-width: 800px;">
+                <div class="modal-header">
+                    <h2>Extract Thinking Steps (<span id="thinkingCount">0</span> found)</h2>
+                    <button id="closeThinkingModalBtn" class="modal-close">&times;</button>
+                </div>
+                
+                <div class="modal-body">
+                    <div class="section">
+                        <p style="font-size: 12px; color: #a0a0b0; margin-bottom: 15px;">
+                            Extract all thinking/reasoning steps from the chat. These are the internal thoughts before Lumo's responses.
+                        </p>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <button id="selectAllThinkingBtn" class="text-btn">Select All</button>
+                            <button id="deselectAllThinkingBtn" class="text-btn">Deselect All</button>
+                        </div>
+                        <div id="thinkingList" style="max-height: 400px; overflow-y: auto; border: 1px solid #2a2a4a; border-radius: 8px; background: #16213e;">
+                            <!-- Thinking steps will be injected here -->
+                        </div>
+                    </div>
+
+                    <div class="section" style="border-top: 1px solid #2a2a4a; padding-top: 15px;">
+                        <label style="display: block; margin-bottom: 8px; font-size: 12px; color: #a0a0b0;">Export Format:</label>
+                        <div style="display: flex; gap: 10px;">
+                            <button id="exportThinkingHtmlBtn" class="btn" style="flex: 1; background: linear-gradient(135deg, #6c63ff, #3f37c9);">HTML (.html)</button>
+                            <button id="exportThinkingTxtBtn" class="btn" style="flex: 1; background: linear-gradient(135deg, #6c63ff, #3f37c9);">Text (.txt)</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div id="aboutModal" class="modal-overlay hidden">
             <div class="modal-content">
                 <div class="modal-header">
@@ -222,8 +257,10 @@
                 
                 <div class="modal-body">
                     <div class="section">
-                     <h3> What's New (v7.2)</h3>
+                     <h3> What's New (v7.7)</h3>
                         <ul class="release-notes">
+                            <li><strong>Thinking Export:</strong> Extract and export all thinking/reasoning steps separately as HTML or TXT.</li>
+                            <li><strong>Custom chat/project</strong> file name to  Export</li>
                             <li><strong>Memory Export:</strong> Export saved memories (Lumo brain) as structured JSON automatically opens Settings &gt; Memory panel.</li>
                             <li><strong>Image Export:</strong> Extract generated images as HTML gallery or download individually.</li>
                             <li><strong>Resizable Window:</strong> Expand to full size for deep analysis.</li>
@@ -350,6 +387,13 @@
                         <h3>📦 Extracting Code Blocks</h3>
                         <p>Click <strong>📦 Extract Code Blocks</strong> to scan the entire chat for code snippets.</p>
                         <p>Preview all snippets, select specific ones, and export them as a single Markdown file or individual text files.</p>
+                    </div>
+
+                    <div class="section">
+                        <h3>💭 Extracting Thinking Steps</h3>
+                        <p>Click <strong>💭 Export Thinking</strong> to extract all thinking/reasoning steps from the chat.</p>
+                        <p>These are Lumo's internal thoughts and reasoning processes before generating responses.</p>
+                        <p>Preview each thinking step, select specific ones, and export them as HTML (with styling) or plain text.</p>
                     </div>
 
                     <div class="section">
