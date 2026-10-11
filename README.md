@@ -1,5 +1,7 @@
 #  Lumo Chat Export
 
+## New in version 7.7: Export thinking useful for debug and to help improve prompts.
+
 ### Added Proton Drive Direct export , refere to the folder drive_export (vanilla only)
 
 ### The Drive export requires a lot of work and time to send it to Firefox AMO, feel free to submit yourself or use as is , it just works. 
@@ -16,11 +18,11 @@
 
 </div>
 
-HASH VERIFICATION V.7.6
+HASH VERIFICATION V.7.7
 
 New: Export memory
 
-Hash: dbd4dfb7cb5b882931952dca341c3fd0e498f42db073e26426beab6f175b62d6
+Hash: bb69610012572afe1362eabc102df790f12f70682d2927ad78ea7e21487e1b52
 
 Note: Hash verification is performed exclusively on the JavaScript file, as it represents the sole attack vector in this implementation.
 ```
