@@ -1926,48 +1926,122 @@ document.addEventListener('DOMContentLoaded', () => {
         exportThinkingBtn.classList.add('loading');
         const script = `
             (function() {
-                const thinkings = [];
-                const selectors = [
-                    '.thinking-step-body',
-                    '[class*="thinking"]',
-                    '[class*="reasoning"]',
-                    '[data-thinking]',
-                    '.inner-thought',
-                    '.thought-process'
-                ];
-                
-                let containers = [];
-                for (let sel of selectors) {
-                    const found = document.querySelectorAll(sel);
-                    if (found.length > 0) {
-                        containers = Array.from(found);
-                        break;
-                    }
-                }
-
-                if (containers.length === 0) {
-                    return [];
-                }
-
-                containers.forEach((container, index) => {
+                function allIn(root, selector) {
+                    var out = [];
                     try {
-                        const outerHtml = container.outerHTML;
-                        const innerText = container.innerText || container.textContent;
-                        
-                        if (outerHtml && innerText.trim().length > 0) {
-                            thinkings.push({
-                                index: index + 1,
-                                html: outerHtml,
-                                text: innerText.trim(),
-                                preview: innerText.substring(0, 80) + (innerText.length > 80 ? '...' : '')
-                            });
+                        var direct = root.querySelectorAll(selector);
+                        for (var i = 0; i < direct.length; i++) {
+                            out.push(direct[i]);
                         }
-                    } catch (e) {
-                        console.error('Error extracting thinking:', e);
+                    } catch (e) {}
+                    try {
+                        var els = root.querySelectorAll('*');
+                        for (var j = 0; j < els.length; j++) {
+                            if (els[j].shadowRoot) {
+                                var sub = allIn(els[j].shadowRoot, selector);
+                                for (var k = 0; k < sub.length; k++) {
+                                    out.push(sub[k]);
+                                }
+                            }
+                        }
+                    } catch (e) {}
+                    return out;
+                }
+
+                function firstIn(root, selector) {
+                    var found = allIn(root, selector);
+                    return found.length > 0 ? found[0] : null;
+                }
+
+                function revealThoughts() {
+                    var targets = allIn(document, 'button, summary, details, [role="button"], [aria-expanded]');
+                    for (var i = 0; i < targets.length; i++) {
+                        var el = targets[i];
+                        var t = (el.textContent || '').trim().toLowerCase();
+                        if (t.length === 0 || t.length > 60) {
+                            continue;
+                        }
+                        if (!/thought|thinking|reasoning|worked through/.test(t)) {
+                            continue;
+                        }
+                        try {
+                            if (el.tagName === 'DETAILS') {
+                                el.open = true;
+                            } else if (el.tagName === 'SUMMARY') {
+                                if (el.parentElement) {
+                                    el.parentElement.open = true;
+                                }
+                            } else if (el.getAttribute('aria-expanded') === 'false' || el.getAttribute('aria-expanded') === null) {
+                                el.click();
+                            }
+                        } catch (e) {}
                     }
+                }
+
+                function extract() {
+                    var containers = allIn(document, '[class*="thinking-step-content"]');
+                    if (containers.length === 0) {
+                        containers = allIn(document, '[class*="thinking-step-body"]');
+                    }
+                    if (containers.length === 0) {
+                        var labels = allIn(document, '[class*="thinking-step-label"]');
+                        for (var l = 0; l < labels.length; l++) {
+                            if (labels[l].parentElement) {
+                                containers.push(labels[l].parentElement);
+                            }
+                        }
+                    }
+
+                    var skipPatterns = ['done', 'completed', 'finished', 'thought this through'];
+                    var thinkings = [];
+
+                    for (var i = 0; i < containers.length; i++) {
+                        var container = containers[i];
+                        var text = '';
+
+                        var body = firstIn(container, '.progressive-markdown-content');
+                        if (body && body !== container && body.textContent) {
+                            text = body.textContent.trim();
+                        }
+                        if (text.length === 0 && container.textContent) {
+                            text = container.textContent.trim();
+                        }
+                        if (text.length === 0) {
+                            continue;
+                        }
+
+                        var lower = text.toLowerCase();
+                        var isMarker = false;
+                        for (var j = 0; j < skipPatterns.length; j++) {
+                            if (lower === skipPatterns[j]) {
+                                isMarker = true;
+                                break;
+                            }
+                        }
+                        if (isMarker) {
+                            continue;
+                        }
+
+                        thinkings.push({
+                            index: thinkings.length + 1,
+                            html: container.outerHTML || '',
+                            text: text,
+                            preview: text.substring(0, 80) + (text.length > 80 ? '...' : '')
+                        });
+                    }
+                    return thinkings;
+                }
+
+                revealThoughts();
+
+                return new Promise(function(resolve) {
+                    setTimeout(function() {
+                        revealThoughts();
+                        setTimeout(function() {
+                            resolve(extract());
+                        }, 500);
+                    }, 500);
                 });
-                
-                return thinkings;
             })();
         `;
         try {
@@ -1979,12 +2053,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             const result = await browser.tabs.executeScript(tab.id, { code: script });
-            if (result && result[0]) {
-                extractedThinking.length = 0;
-                extractedThinking.push(...result[0]);
-                renderThinkingList();
-                thinkingExtractModal.classList.remove('hidden');
-                thinkingExtractModal.classList.add('active');
+            const found = (result && result[0]) ? result[0] : [];
+            extractedThinking.length = 0;
+            extractedThinking.push.apply(extractedThinking, found);
+            renderThinkingList();
+            thinkingExtractModal.classList.remove('hidden');
+            thinkingExtractModal.classList.add('active');
+            if (extractedThinking.length > 0) {
+                setStatus('Found ' + extractedThinking.length + ' thinking step(s)', 'success');
             } else {
                 setStatus('No thinking steps found.', 'error');
             }
